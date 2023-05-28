@@ -1,0 +1,4 @@
+{
+    "SECRET_KEY": "b7850a63987778b77f788b69fe526d26",
+    "SQLALCHEMY_DATABASE_URI": "postgresql://mypostgres:mypostgres@localhost:5432/postgres"
+}

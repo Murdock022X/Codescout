@@ -8,13 +8,13 @@ db = SQLAlchemy()
 
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
-
+ 
 def create_app():
     app = Flask(__name__)
 
     app.config['ROOT'] = Path(__file__).parent
 
-    with open(str(app.config['ROOT'] / Path('config.json'))) as conf:
+    with open(str(app.config['ROOT'] / Path('app_config.json'))) as conf:
         config = json.load(conf)
 
     app.config['SECRET_KEY'] = config['SECRET_KEY']
