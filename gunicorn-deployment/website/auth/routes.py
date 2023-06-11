@@ -38,19 +38,25 @@ def signup():
     if form.validate_on_submit():
         if User.query.filter_by(username=form.username.data).one():
             flash('Username Taken')
+            
         else:
-            password_hash = generate_password_hash(form.password.data, method='sha256')
-            new_user = User(username=form.username.data, password_hash=password_hash, first_name=form.first_name.data, last_name=form.last_name.data)
+            password_hash = generate_password_hash(form.password.data, 
+                                                   method='sha256')
+            
+            new_user = User(username=form.username.data, 
+                            password_hash=password_hash, 
+                            first_name=form.first_name.data, 
+                            last_name=form.last_name.data)
 
             db.session.add(new_user)
             db.session.commit()
 
             return redirect(url_for('auth.login'))
 
-    return render_template('signup.html')
+    return render_template('signup.html', form=form)
 
 @auth.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect('main.index')
+    return redirect(url_for('main.index'))
