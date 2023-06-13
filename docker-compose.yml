@@ -1,6 +1,6 @@
 services:
   app:
-    image: package-search
+    image: dcr
     restart: always
     ports:
       - "8080:8080"
@@ -19,8 +19,8 @@ services:
     volumes:
       - postgres-data:/var/lib/postgres
     environment:
-      - POSTGRES_USER=mypostgres
-      - POSTGRES_PASSWORD=mypostgres
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
 
 volumes:
   postgres-data:

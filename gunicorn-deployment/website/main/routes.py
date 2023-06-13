@@ -1,12 +1,17 @@
 from flask import Blueprint, render_template, redirect, url_for
+from flask_login import current_user
 
-from forms import SearchForm
+from website.main.forms import SearchForm
 
 main = Blueprint('main', __name__)
 
-@main.route('/')
+@main.route('/index')
 def index():
     return render_template('index.html')
+
+@main.route('/account_settings')
+def account_settings():
+    
 
 @main.route('/search_engine', methods=['GET', 'POST'])
 def search_engine():

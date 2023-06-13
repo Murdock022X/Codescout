@@ -2,32 +2,32 @@
 
 {% block content %}
 
-<div class="container">
-    <form>
-        <div class="mb-3">
-            <label class="form-label" for="username-input">Username</label>
-            {{ form.username(class='form-control', type='text', id='username-input') }}
-        </div>
+<form method="POST">
+    {{ form.csrf_token }}
+    
+    <div class="mb-3">
+        <label class="form-label" for="email-input">{{ form.email.label }}</label>
+        {{ form.email(class='form-control', type='text', id='email-input') }}
+    </div>
 
-        <div class="mb-3">
-            <label class="form-label" for="password-input">Password</label>
-            {{ form.password(class='form-control', type='password', id='password-input') }}
-        </div>
+    <div class="mb-3">
+        <label class="form-label" for="password-input">{{ form.password.label }}</label>
+        {{ form.password(class='form-control', type='password', id='password-input') }}
+    </div>
 
-        <div class="mb-3">
-            <label class="form-label" for="first-name">First Name</label>
-            {{ form.first_name(class='form-control', type='text', id='first-name') }}
-        </div>
+    <div class="mb-3">
+        <label class="form-label" for="first-name">{{ form.first_name.label }}</label>
+        {{ form.first_name(class='form-control', type='text', id='first-name') }}
+    </div>
 
-        <div class="mb-3">
-            <label class="form-label" for="last-name">Last Name</label>
-            {{ form.last_name(class='form-control', type='text', id='last-name') }}
-        </div>
+    <div class="mb-3">
+        <label class="form-label" for="last-name">{{ form.last_name.label }}</label>
+        {{ form.last_name(class='form-control', type='text', id='last-name') }}
+    </div>
 
-        <div class="mb-3">
-            {{ form.submit(class='btn btn-primary') }}
-        </div>
-    </form>
-</div>
+    <div class="mb-3">
+        {{ form.submit(class='btn btn-primary') }}
+    </div>
+</form>
 
 {% endblock %}
