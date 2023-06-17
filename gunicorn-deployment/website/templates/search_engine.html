@@ -1,0 +1,20 @@
+{% extends 'site.html' %}
+
+{% block content %}
+
+<form method="POST">
+    {{ form.csrf_token }}
+    
+    <div class="form-check">
+        {{ form.cluster_selections(class='form-check-input', id='cluster-select') }}
+        <label class="form-check-label" for="flexCheckChecked">
+            {{ form.cluster_selections.label(class='form-check-label', for='cluster-select') }}
+        </label>
+    </div>
+
+    <div class="mb-3">
+        {{ form.submit(class='btn btn-primary') }}
+    </div>
+</form>
+
+{% endblock %}

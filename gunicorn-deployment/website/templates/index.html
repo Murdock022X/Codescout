@@ -1,1 +1,19 @@
 {% extends 'site.html' %}
+
+{% block content %}
+
+<h4></h4>
+<p>The Distributed Code Repository website is a simple way to search an 
+    ElasticSearch cluster for software services and packages. By setting up 
+    your own ElasticSearch cluster (reccomended to use Docker) and providing 
+    the DCR website with the ip address you can easily search and add packages 
+    and services developed by your team, company, etc. to your cluster while 
+    keeping your IP private. DCR is also available as a Helm Chart if you want 
+    to deploy it on your own servers using a Kubernetes cluster.</p>
+
+<h4>What Distributed Code Repositories is all about:</h4>
+<p>The goal of DCR is to keep your code private, while allowing users in your 
+    organization the ability to quickly find and gain access to software 
+    services and packages that meet their functionality requirements.</p>
+
+{% endblock %}
