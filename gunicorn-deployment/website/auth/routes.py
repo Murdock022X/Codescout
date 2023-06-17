@@ -21,6 +21,7 @@ def login():
         if user:
             if check_password_hash(user.password_hash, form.password.data):
                 login_user(user)
+                print(current_user.clusters)
                 return redirect(url_for('main.search_engine'))
             
             else:

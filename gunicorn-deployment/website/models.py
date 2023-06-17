@@ -9,21 +9,25 @@ def load_user(id):
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    email = db.Column(db.String(254), unique=True)
+    email = db.Column(db.String(300), unique=True)
 
-    password_hash = db.Column(db.String(88))
+    password_hash = db.Column(db.String(100))
 
     first_name = db.Column(db.String(50))
 
     last_name = db.Column(db.String(50))
 
-    clusters = db.relationship('Clusters', backref='user', lazy=True)
+    clusters = db.relationship('Clusters', backref='user')
 
 class Clusters(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    email = db.Column(db.String(254))
+    el_host = db.Column(db.String(200))
 
-    cluster_ip = db.Column(db.String(40))
+    el_port = db.Column(db.String(5))
+
+    el_user = db.Column(db.String(100))
+
+    el_password = db.Column(db.String(100))
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))

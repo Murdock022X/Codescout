@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectMultipleField, SubmitField, PasswordField
+from wtforms import StringField, SelectMultipleField, SubmitField, PasswordField, FileField
 from wtforms.validators import InputRequired, Length
 
 class SearchForm(FlaskForm):
@@ -9,13 +9,20 @@ class SearchForm(FlaskForm):
 
     language_filter = SelectMultipleField('Language Filter', choices=[])
 
-    search_query = StringField('Functionality Description', validators=[Length(max=1000)])
+    search_query = StringField('Functionality Description', validators=[InputRequired(), Length(max=500)])
 
     submit = SubmitField('Search')
     
-class AccountSettingsForm(FlaskForm):
-    cluster
+class AddClusterForm(FlaskForm):
 
-    password = PasswordField('Old ', validators=[InputRequired(), Length(min=6, max=50)])
+    el_host = StringField('Elasticsearch Host', validators=[InputRequired(), Length(max=200)])
+
+    el_port = StringField('Elasticsearch Port')
+
+    el_certs_file = FileField('CA Certificate', validators=[])
+
+    el_user = StringField('Elasticsearch Username', validators=[InputRequired()])
+
+    el_password = PasswordField('Elasticsearch Password', validators=[InputRequired(), Length(min=6)])
 
     submit = SubmitField('Save')

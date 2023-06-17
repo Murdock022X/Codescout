@@ -1,0 +1,63 @@
+{% extends 'site.html' %}
+
+{% block content %}
+
+<div class="row align-items-start">
+    <div class="col">
+        <form method="POST" enctype="multipart/form-data">
+            {{ form.csrf_token }}
+            <div class="mb-3">
+                <label class="form-label" for="host-input">{{ form.el_host.label }}</label>
+                {{ form.el_host(class='form-control', type='text', id='host-input', placeholder='111.111.111.111 or example.com') }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="port-input">{{ form.el_port.label }}</label>
+                {{ form.el_port(class='form-control', type='text', id='port-input', placeholder='0000') }}
+            </div>
+
+            <div class="mb-3">
+                <label for="certs-input" class="form-label">{{ form.el_certs_file.label }}</label>
+                {{ form.el_certs_file(class='form-control', type='file', id='certs-input', placeholder='Elasticsearch Certificate File') }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="username-input">{{ form.el_user.label }}</label>
+                {{ form.el_user(class='form-control', type='text', id='username-input') }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="password-input">{{ form.el_password.label }}</label>
+                {{ form.el_password(class='form-control', type='password', id='password-input') }}
+            </div>
+
+            <div class="mb-3">
+                {{ form.submit(class='btn btn-primary') }}
+            </div>
+        </form>
+    </div>
+    <div class="col">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Host</th>
+                    <th scope="col">Port</th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cluster in current_user.clusters %}
+                <tr>
+                    <td>{{ cluster.el_host }}</td>
+                    <td>{{ cluster.el_port }}</td>
+                    <td><a href="#">Edit</a></td>
+                    <td><a href="#">Delete</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
