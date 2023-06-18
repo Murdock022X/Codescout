@@ -22,12 +22,12 @@ class User(UserMixin, db.Model):
 class Clusters(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    el_host = db.Column(db.String(200))
+    es_host = db.Column(db.String(200))
 
-    el_port = db.Column(db.String(5))
+    es_port = db.Column(db.String(5))
 
-    el_user = db.Column(db.String(100))
+    es_user = db.Column(db.String(100))
 
-    el_password = db.Column(db.String(100))
+    es_password = db.Column(db.String(100))
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))

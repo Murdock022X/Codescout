@@ -15,14 +15,27 @@ class SearchForm(FlaskForm):
     
 class AddClusterForm(FlaskForm):
 
-    el_host = StringField('Elasticsearch Host', validators=[InputRequired(), Length(max=200)])
+    es_host = StringField('Elasticsearch Host', validators=[InputRequired(), Length(max=200)])
 
-    el_port = StringField('Elasticsearch Port')
+    es_port = StringField('Elasticsearch Port')
 
-    el_certs_file = FileField('CA Certificate', validators=[])
+    es_certs_file = FileField('CA Certificate', validators=[])
 
-    el_user = StringField('Elasticsearch Username', validators=[InputRequired()])
+    es_user = StringField('Elasticsearch Username', validators=[InputRequired()])
 
-    el_password = PasswordField('Elasticsearch Password', validators=[InputRequired(), Length(min=6)])
+    es_password = PasswordField('Elasticsearch Password', validators=[InputRequired(), Length(min=6)])
+
+    submit = SubmitField('Save')
+
+class EditClusterForm(FlaskForm):
+    es_host = StringField('Elasticsearch Host', validators=[InputRequired(), Length(max=200)])
+
+    es_port = StringField('Elasticsearch Port')
+
+    es_certs_file = FileField('CA Certificate', validators=[])
+
+    es_user = StringField('Elasticsearch Username', validators=[InputRequired()])
+
+    es_password = PasswordField('Elasticsearch Password', validators=[InputRequired(), Length(min=6)])
 
     submit = SubmitField('Save')

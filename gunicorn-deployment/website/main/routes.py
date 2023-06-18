@@ -5,7 +5,7 @@ from website.models import User, Clusters
 
 from werkzeug.utils import secure_filename
 
-from website.main.forms import SearchForm, AddClusterForm
+from website.main.forms import SearchForm, AddClusterForm, EditClusterForm
 
 from elasticsearch import Elasticsearch
 
@@ -15,7 +15,7 @@ import os
 
 from pathlib import Path
 
-from website.main.utils import assemble_el_url
+from website.main.utils import assemble_es_url
 
 main = Blueprint('main', __name__)
 
@@ -26,26 +26,26 @@ def index():
 
 @login_required
 @main.route('/add_cluster', methods=['GET', 'POST'])
-def addcluster():
+def add_cluster():
     form = AddClusterForm()
 
     if form.validate_on_submit():
-        el_host = form.el_host.data
+        es_host = form.es_host.data
         
-        el_port = form.el_port.data
+        es_port = form.es_port.data
 
-        cert_pth = Path(current_app.config['PROJECT_ROOT']) / Path(current_app.config['UPLOAD_FOLDER']) / Path(str(current_user.id)) / Path(str(el_host))
+        cert_pth = Path(current_app.config['PROJECT_ROOT']) / Path(current_app.config['UPLOAD_FOLDER']) / Path(str(current_user.id)) / Path(str(es_host))
 
         cert_pth.mkdir(parents=True, exist_ok=True)
 
-        form.el_certs_file.data.save(os.path.join(current_app.config['PROJECT_ROOT'], current_app.config['UPLOAD_FOLDER'], str(current_user.id), str(el_host), secure_filename('http_ca.crt')))
+        form.el_certs_file.data.save(str(cert_pth / Path(secure_filename('http_ca.crt'))))
 
-        el_user = form.el_user.data
+        es_user = form.es_user.data
 
-        el_password = form.el_password.data
+        es_password = form.es_password.data
 
-        cluster = Clusters(el_host=el_host, el_port=el_port, el_user=el_user, 
-                    el_password=el_password, user_id=current_user.id)
+        cluster = Clusters(es_host=es_host, es_port=es_port, es_user=es_user, 
+                    es_password=es_password, user_id=current_user.id)
         
         db.session.add(cluster)
 
@@ -57,12 +57,12 @@ def addcluster():
 @main.route('/verify_el_conns')
 def verify_el_conns():
     for cluster in current_user.clusters:
-        cli = Elasticsearch(assemble_el_url(cluster.el_host, cluster.el_port), ca_certs=
+        cli = Elasticsearch(assemble_es_url(cluster.es_host, cluster.es_port), ca_certs=
                       os.path.join(current_app.config['PROJECT_ROOT'], 
                                    current_app.config['UPLOAD_FOLDER'], 
-                                   str(current_user.id), cluster.el_host, 'http_ca.crt'), 
+                                   str(current_user.id), cluster.es_host, 'http_ca.crt'), 
                                    basic_auth=
-                                   (cluster.el_user, cluster.el_password))
+                                   (cluster.es_user, cluster.es_password))
 
     return redirect(url_for('main.index'))
 
@@ -81,13 +81,24 @@ def search_engine():
     return render_template('search_engine.html', form=form)
 
 @login_required
-@main.route()
+@main.route('/edit_cluster/<int:cluster_id>')
+def edit_cluster(cluster_id):
+    cluster = Clusters.query.get(cluster_id)
+
+    form = EditClusterForm()
+
+    if form.validate_on_submit():
+        pass
+
+    return render_template('edit_cluster.html')
 
 @login_required
-@main.route('/delete_cluster')
-def delete_cluster():
-    cluster = Clusters.query.get(session['DELETE_CLUSTER_ID'])
+@main.route('/delete_cluster/<int:cluster_id>')
+def delete_cluster(cluster_id):
+    cluster = Clusters.query.get(cluster_id)
 
     db.session.delete(cluster)
 
     db.session.commit()
+
+    return redirect(url_for('main.add_cluster'))
