@@ -1,3 +1,5 @@
+#!/bin/sh
+
 export net=elasticnet
 
 docker network create $net

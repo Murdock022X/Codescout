@@ -17,7 +17,7 @@
             </div>
 
             <div class="mb-3">
-                <label for="certs-input" class="form-label">{{ form.es_certs_file.label }}</label>
+                <label class="form-label" for="certs-input">{{ form.es_certs_file.label }}</label>
                 {{ form.es_certs_file(class='form-control', type='file', id='certs-input', placeholder='Elasticsearch Certificate File') }}
             </div>
 
@@ -37,22 +37,32 @@
         </form>
     </div>
     <div class="col">
-        <table class="table">
+        <table class="table table-striped">
             <thead>
                 <tr>
-                    <th scope="col">Host</th>
-                    <th scope="col">Port</th>
-                    <th scope="col"></th>
-                    <th scope="col"></th>
+                    <th scope="col" style="text-align:center;">Host</th>
+                    <th scope="col" style="text-align:center;">Details</th>
+                    <th scope="col" style="text-align:center;">Edit</th>
+                    <th scope="col" style="text-align:center;">Delete</th>
                 </tr>
             </thead>
             <tbody>
                 {% for cluster in current_user.clusters %}
-                <tr>
-                    <td>{{ cluster.es_host }}</td>
-                    <td>{{ cluster.es_port }}</td>
-                    <td><a href="{{ url_for('main.edit_cluster', cluster_id=cluster.id) }}">Edit</a></td>
-                    <td><a href="{{ url_for('main.delete_cluster', cluster_id=cluster.id) }}">Delete</a></td>
+                <tr class="dropdown">
+                    <td style="text-align:center;">{{ cluster.es_host }}</td>
+                    <td style="text-align:center;">
+                        <div class="dropdown">
+                            <i class="bi bi-eye text-primary" role="button" data-bs-toggle="dropdown" aria-expanded="false"></i>
+                            <ul class="dropdown-menu">
+                                <li><span class="dropdown-item-text">Host: {{ cluster.es_host }}</span></li>
+                                <li><span class="dropdown-item-text">Port: {{ cluster.es_port }}</span></li>
+                                <li><span class="dropdown-item-text">User: {{ cluster.es_user }}</span></li>
+                                <li><span class="dropdown-item-text">Password: {{ cluster.es_password }}</span></li>
+                            </ul>
+                        </div>
+                    </td>
+                    <td style="text-align:center;"><a href="{{ url_for('main.edit_cluster', cluster_id=cluster.id) }}"><i class="bi bi-pencil-square"></i></a></td>
+                    <td style="text-align:center;"><a href="{{ url_for('main.delete_cluster', cluster_id=cluster.id) }}"><i class="bi bi-trash"></i></a></td>
                 </tr>
                 {% endfor %}
             </tbody>

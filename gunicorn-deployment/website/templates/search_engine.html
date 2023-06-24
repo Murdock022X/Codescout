@@ -5,16 +5,29 @@
 <form method="POST">
     {{ form.csrf_token }}
     
-    <div class="form-check">
-        {{ form.cluster_selections(class='form-check-input', id='cluster-select') }}
-        <label class="form-check-label" for="flexCheckChecked">
-            {{ form.cluster_selections.label(class='form-check-label', for='cluster-select') }}
-        </label>
+    <div class="mb-3">
+        <label class="form-label" for="cluster-input">{{ form.cluster_selections.label }}</label>
+        {{ form.cluster_selections(class='form-select', id='cluster-input', multiple='multiple', style='list-style: none;') }}
     </div>
 
     <div class="mb-3">
+        <label class="form-label" for="software-types-input">{{ form.software_types.label }}</label>
+        {{ form.software_types(class='form-select', id='software-types-input', multiple='multiple', style='list-style: none;') }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="language-input">{{ form.language_filter.label }}</label>
+        {{ form.language_filter(class='form-select', id='language-input', multiple='multiple', style='list-style: none;') }}
+    </div>
+
+    <div class="mb-3 input-group">
+        <div class="form-outline">
+            {{ form.software_types(class='form-select', id='search-query-input', multiple='multiple', style='list-style: none;') }}
+            <label class="form-label" for="search-query-input">{{ form.search_query.label }}</label>
+        </div>
         {{ form.submit(class='btn btn-primary') }}
     </div>
+
 </form>
 
 {% endblock %}

@@ -17,6 +17,8 @@ class User(UserMixin, db.Model):
 
     last_name = db.Column(db.String(50))
 
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+
     clusters = db.relationship('Clusters', backref='user')
 
 class Clusters(db.Model):
@@ -31,3 +33,28 @@ class Clusters(db.Model):
     es_password = db.Column(db.String(100))
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+class Organization(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    organizational_name = db.Column(db.String(100))
+
+    users = db.relationship('User', backref='organization')
+
+    software_types = db.relationship('SoftwareTypes', backref='organization')
+
+    languages = db.relationship('Languages', backref='organization')
+
+class SoftwareTypes(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    type = db.Column(db.String(50))
+
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+
+class Languages(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    name = db.Column(db.String(150))
+
+    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))

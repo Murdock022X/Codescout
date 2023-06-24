@@ -1,7 +1,7 @@
-from flask import Blueprint, render_template, redirect, url_for, current_app, session
+from flask import Blueprint, render_template, redirect, url_for, current_app, flash
 from flask_login import current_user, login_required
 
-from website.models import User, Clusters
+from website.models import User, Clusters, SoftwareTypes, Organization
 
 from werkzeug.utils import secure_filename
 
@@ -15,7 +15,7 @@ import os
 
 from pathlib import Path
 
-from website.main.utils import assemble_es_url
+from website.main.utils import assemble_es_url, assemble_cert_path, save_certs
 
 main = Blueprint('main', __name__)
 
@@ -26,7 +26,7 @@ def index():
 
 @login_required
 @main.route('/add_cluster', methods=['GET', 'POST'])
-def add_cluster():
+def add_cluster(): 
     form = AddClusterForm()
 
     if form.validate_on_submit():
@@ -34,11 +34,8 @@ def add_cluster():
         
         es_port = form.es_port.data
 
-        cert_pth = Path(current_app.config['PROJECT_ROOT']) / Path(current_app.config['UPLOAD_FOLDER']) / Path(str(current_user.id)) / Path(str(es_host))
-
-        cert_pth.mkdir(parents=True, exist_ok=True)
-
-        form.el_certs_file.data.save(str(cert_pth / Path(secure_filename('http_ca.crt'))))
+        save_certs(es_certs_file=form.es_certs_file, app=current_app, 
+                   es_host=es_host, dcr_user_id=current_user.id)
 
         es_user = form.es_user.data
 
@@ -54,22 +51,21 @@ def add_cluster():
     return render_template('add_cluster.html', form=form)
 
 @login_required
-@main.route('/verify_el_conns')
-def verify_el_conns():
-    for cluster in current_user.clusters:
-        cli = Elasticsearch(assemble_es_url(cluster.es_host, cluster.es_port), ca_certs=
-                      os.path.join(current_app.config['PROJECT_ROOT'], 
-                                   current_app.config['UPLOAD_FOLDER'], 
-                                   str(current_user.id), cluster.es_host, 'http_ca.crt'), 
-                                   basic_auth=
-                                   (cluster.es_user, cluster.es_password))
-
-    return redirect(url_for('main.index'))
-
-@login_required
 @main.route('/search_engine', methods=['GET', 'POST'])
 def search_engine():
     form = SearchForm()
+
+    form.cluster_selections.choices = [cluster.es_host for cluster in current_user.clusters]
+
+    org = Organization.query.get(current_user.organization_id)
+
+    if not org:
+        flash('')
+        return redirect(url_for('main.index'))
+
+    form.software_types.choices = [sw.type for sw in org.software_types]
+
+    form.language_filter.choices = [lang.name for lang in org.languages]
 
     if form.validate_on_submit():
         clusters = form.cluster_selections.data
@@ -81,16 +77,35 @@ def search_engine():
     return render_template('search_engine.html', form=form)
 
 @login_required
-@main.route('/edit_cluster/<int:cluster_id>')
+@main.route('/cluster_details/<int:cluster_id>')
+def cluster_details(cluster_id):
+    return render_template('cluster_details.html')
+
+@login_required
+@main.route('/edit_cluster/<int:cluster_id>', methods=['GET', 'POST'])
 def edit_cluster(cluster_id):
     cluster = Clusters.query.get(cluster_id)
 
     form = EditClusterForm()
 
     if form.validate_on_submit():
-        pass
+        if form.es_host.data:
+            cluster.es_host = form.es_host.data
+        if form.es_port.data:
+            cluster.es_port = form.es_port.data
+        if form.es_certs_file.data:
+            save_certs(es_certs_file=form.es_certs_file, app=current_app, 
+                   es_host=cluster.es_host, dcr_user_id=current_user.id)
+        if form.es_user.data:
+            cluster.es_user = form.es_user.data
+        if form.es_password.data:
+            cluster.es_password = form.es_password.data
 
-    return render_template('edit_cluster.html')
+        db.session.commit()
+
+        return redirect(url_for('main.add_cluster'))
+
+    return render_template('edit_cluster.html', form=form)
 
 @login_required
 @main.route('/delete_cluster/<int:cluster_id>')
