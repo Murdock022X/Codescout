@@ -55,12 +55,12 @@ def add_cluster():
 def search_engine():
     form = SearchForm()
 
-    form.cluster_selections.choices = [cluster.es_host for cluster in current_user.clusters]
+    form.clusters.choices = [cluster.es_host for cluster in current_user.clusters]
 
     org = Organization.query.get(current_user.organization_id)
 
     if not org:
-        flash('')
+        flash('Please join an organization to search clusters.')
         return redirect(url_for('main.index'))
 
     form.software_types.choices = [sw.type for sw in org.software_types]
@@ -75,11 +75,6 @@ def search_engine():
         search_query = form.search_query.data
 
     return render_template('search_engine.html', form=form)
-
-@login_required
-@main.route('/cluster_details/<int:cluster_id>')
-def cluster_details(cluster_id):
-    return render_template('cluster_details.html')
 
 @login_required
 @main.route('/edit_cluster/<int:cluster_id>', methods=['GET', 'POST'])
