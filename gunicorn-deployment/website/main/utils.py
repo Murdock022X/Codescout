@@ -1,10 +1,10 @@
 from elasticsearch import Elasticsearch
-
 from pathlib import Path
-
-from flask_login import current_user
-
 from werkzeug.utils import secure_filename
+from flask import g, request, redirect, url_for, flash
+from flask_login import current_user
+from functools import wraps
+from website.models import Organizations
 
 def assemble_es_url(host, port, secure):
     if not secure:
@@ -12,24 +12,29 @@ def assemble_es_url(host, port, secure):
 
     return 'https://{}:{}'.format(host, port)
 
-def assemble_cert_path(app, es_host, dcr_user_id):
+def assemble_cert_path(host, org_name, app):
     """
     Returns the directory for the certifications to be stored in via Path object.
     """
-    return Path(app.root_path) / Path(app.config['UPLOAD_FOLDER']) / Path(str(dcr_user_id)) / Path(es_host)
+    return Path(app.root_path) / Path(app.config['UPLOAD_FOLDER']) / Path(org_name) / Path(host)
 
-def save_certs(es_certs_file, app, es_host, dcr_user_id):
-    certs_pth = assemble_cert_path(app=app, es_host=es_host, dcr_user_id=dcr_user_id)
+def save_certs(certs_file, host, org_name, app):
+    certs_pth = assemble_cert_path(host=host, org_name=org_name, app=app)
 
     certs_pth.mkdir(parents=True, exist_ok=True)
 
-    es_certs_file.data.save(str(certs_pth / Path(secure_filename('http_ca.crt'))))
+    certs_file.data.save(str(certs_pth / Path(secure_filename('http_ca.crt'))))
 
-def verify_elasticsearch_connection(host, port, secure, dcr_user_id, es_user, password):
+def get_es_connection(host, port, secure, org_name, app, username, password):
+    conn = Elasticsearch(assemble_es_url(host=host, port=port, secure=secure), ca_certs=assemble_cert_path(host=host, org_name=org_name, app=app), basic_auth=(username, password))
 
-    cli = None
+    return conn
 
-    if secure:
-        cli = Elasticsearch(assemble_es_url(host, port, secure), )
-    else:
-        cli = Elasticsearch(assemble_es_url(host, port, secure), verify_certs=False, basic_auth=(es_user, password))
+def org_required(f):
+    @wraps(f)
+    def decorated_func(*args, **kwargs):
+        if not current_user.organization_id:
+            flash('You need to join an organization to use that.', category='danger')
+            return redirect(url_for('main.join_organization', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_func

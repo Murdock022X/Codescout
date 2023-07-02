@@ -6,8 +6,8 @@
     {{ form.csrf_token }}
     
     <div class="mb-3">
-        <label class="form-label" for="cluster-input">{{ form.cluster_selections.label }}</label>
-        {{ form.cluster_selections(class='form-select', id='cluster-input', multiple='multiple', style='list-style: none;') }}
+        <label class="form-label" for="cluster-input">{{ form.clusters.label }}</label>
+        {{ form.clusters(class='form-select', id='cluster-input', multiple='multiple', style='list-style: none;') }}
     </div>
 
     <div class="mb-3">
@@ -16,8 +16,8 @@
     </div>
 
     <div class="mb-3">
-        <label class="form-label" for="language-input">{{ form.language_filter.label }}</label>
-        {{ form.language_filter(class='form-select', id='language-input', multiple='multiple', style='list-style: none;') }}
+        <label class="form-label" for="language-input">{{ form.languages.label }}</label>
+        {{ form.languages(class='form-select', id='language-input', multiple='multiple', style='list-style: none;') }}
     </div>
 
     <div class="mb-3 input-group">

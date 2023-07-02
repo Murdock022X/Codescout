@@ -7,6 +7,11 @@
         <form method="POST" enctype="multipart/form-data">
             {{ form.csrf_token }}
             <div class="mb-3">
+                <label class="form-label" for="name-input">{{ form.name.label }}</label>
+                {{ form.name(class='form-control', type='text', id='name-input') }}
+            </div>
+
+            <div class="mb-3">
                 <label class="form-label" for="host-input">{{ form.es_host.label }}</label>
                 {{ form.es_host(class='form-control', type='text', id='host-input', placeholder='111.111.111.111 or example.com') }}
             </div>
@@ -32,6 +37,11 @@
             </div>
 
             <div class="mb-3">
+                <label class="form-label" for="secure-input">{{ form.secure.label }}</label>
+                {{ form.secure(class='form-control', id='secure-input', style='list-style: none;') }}
+            </div>
+
+            <div class="mb-3">
                 {{ form.submit(class='btn btn-primary') }}
             </div>
         </form>
@@ -40,20 +50,25 @@
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th scope="col" style="text-align:center;">Host</th>
+                    <th scope="col" style="text-align:center;">Name</th>
+                    <th scope="col" style="text-align:center;">IP/DNS</th>
                     <th scope="col" style="text-align:center;">Details</th>
+                    <th scope="col" style="text-align:center;">Test Connection</th>
+                    <th scope="col" style="text-align:center;">Configure</th>
                     <th scope="col" style="text-align:center;">Edit</th>
                     <th scope="col" style="text-align:center;">Delete</th>
                 </tr>
             </thead>
             <tbody>
-                {% for cluster in current_user.clusters %}
+                {% for cluster in org.clusters %}
                 <tr class="dropdown">
+                    <td style="text-align:center;">{{ cluster.name }}</td>
                     <td style="text-align:center;">{{ cluster.es_host }}</td>
                     <td style="text-align:center;">
                         <div class="dropdown">
                             <i class="bi bi-eye text-primary" role="button" data-bs-toggle="dropdown" aria-expanded="false"></i>
                             <ul class="dropdown-menu">
+                                <li><span class="dropdown-item-text">Name: {{ cluster.name }}</span></li>
                                 <li><span class="dropdown-item-text">Host: {{ cluster.es_host }}</span></li>
                                 <li><span class="dropdown-item-text">Port: {{ cluster.es_port }}</span></li>
                                 <li><span class="dropdown-item-text">User: {{ cluster.es_user }}</span></li>
@@ -61,6 +76,8 @@
                             </ul>
                         </div>
                     </td>
+                    <td style="text-align:center;"><a href="{{ url_for('main.setup_elastic', cluster_id=cluster.id) }}"><i class="bi bi-database-gear"></i></a></td>
+                    <td style="text-align:center;"><a href="{{ url_for('main.test_es_conn', cluster_id=cluster.id) }}"><i class="bi bi-plug"></i></a></td>
                     <td style="text-align:center;"><a href="{{ url_for('main.edit_cluster', cluster_id=cluster.id) }}"><i class="bi bi-pencil-square"></i></a></td>
                     <td style="text-align:center;"><a href="{{ url_for('main.delete_cluster', cluster_id=cluster.id) }}"><i class="bi bi-trash"></i></a></td>
                 </tr>

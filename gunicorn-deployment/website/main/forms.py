@@ -3,11 +3,16 @@ from wtforms import StringField, SubmitField, PasswordField, FileField, RadioFie
 from website.special_fields import CheckField, MultiCheckField
 from wtforms.validators import InputRequired, Length, Optional
 
-class AddOrgForm(FlaskForm):
+class CreateOrgForm(FlaskForm):
     # Add organization.
     org_name = StringField('Organization Name', validators=[InputRequired(), Length(max=100)])
 
     submit = SubmitField('Create')
+
+class JoinOrgForm(FlaskForm):
+    org_name = StringField('Organization Name', validators=[InputRequired(), Length(max=100)])
+
+    submit = SubmitField('Send Request')
 
 class AddSoftwareForm(FlaskForm):
     # Add software to clusters.
@@ -30,13 +35,13 @@ class SearchForm(FlaskForm):
     # dynamic choices, assign choices based on user in route.
 
     # Select which clusters you want to search.
-    clusters = MultiCheckField('Clusters Filter')
+    clusters = MultiCheckField('Clusters')
 
     # Select which software types you're looking for.
     software_types = MultiCheckField('Software Types')
 
     # Select which languages the software is written in.
-    language_filter = MultiCheckField('Language Filter')
+    languages = MultiCheckField('Languages')
 
     # The search query to search for.
     search_query = StringField('Functionality Description', validators=[Length(max=500)])
@@ -46,36 +51,48 @@ class SearchForm(FlaskForm):
 class AddClusterForm(FlaskForm):
     # Add a cluster to search.
 
+    # Name of the cluster.
+    name = StringField('Cluster Name', validators=[InputRequired(), Length(max=100)])
+
     # Elasticsearch host IP/DNS.
     es_host = StringField('Elasticsearch Host', validators=[InputRequired(), Length(max=200)])
 
     # Elasticsearch host port.
     es_port = StringField('Elasticsearch Port', validators=[InputRequired(), Length(max=5)])
 
-    # Certificate file to verify 
+    # Certificates for Elasticsearch.
     es_certs_file = FileField('CA Certificate', validators=[InputRequired()])
 
-    # Elasticsearch username.
+    # Username to Elasticsearch.
     es_user = StringField('Elasticsearch Username', validators=[InputRequired()])
 
     # Password to Elasticsearch.
     es_password = PasswordField('Elasticsearch Password', validators=[InputRequired(), Length(min=6)])
+
+    # Should DCR use a secure connection?
+    secure = RadioField('Secure Connection?', choices=['Yes', 'No'], validators=[InputRequired()])
 
     submit = SubmitField('Save')
 
 class EditClusterForm(FlaskForm):
     # Edit cluster information.
 
+    # Name of the cluster.
+    name = StringField('Cluster Name', validators=[InputRequired(), Length(max=100)])
 
+    # Elasticsearch host IP/DNS.
     es_host = StringField('Elasticsearch Host', validators=[Optional(), Length(max=200)])
 
-    # Edi
+    # Elasticsearch host port.
     es_port = StringField('Elasticsearch Port', validators=[Optional(), Length(max=5)])
 
+    # Certificates for Elasticsearch.
     es_certs_file = FileField('CA Certificate', validators=[Optional()])
 
+    # Username to Elasticsearch.
     es_user = StringField('Elasticsearch Username', validators=[Optional(), Length(max=512)])
 
+    # Password to Elasticsearch.
     es_password = PasswordField('Elasticsearch Password', validators=[Optional(), Length(min=6, max=512)])
 
     submit = SubmitField('Save')

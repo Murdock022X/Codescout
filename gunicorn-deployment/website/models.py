@@ -4,12 +4,12 @@ from website import db, login_manager
 
 @login_manager.user_loader
 def load_user(id):
-    return User.query.get(int(id))
+    return Users.query.get(int(id))
 
-class User(UserMixin, db.Model):
+class Users(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    email = db.Column(db.String(300), unique=True)
+    username = db.Column(db.String(100), unique=True)
 
     password_hash = db.Column(db.String(100))
 
@@ -17,14 +17,16 @@ class User(UserMixin, db.Model):
 
     last_name = db.Column(db.String(50))
 
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+    admin_status = db.Column(db.Boolean)
 
-    clusters = db.relationship('Clusters', backref='user')
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
 
 class Clusters(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    es_host = db.Column(db.String(200))
+    name = db.Column(db.String(100))
+
+    es_host = db.Column(db.String(200), unique=True)
 
     es_port = db.Column(db.String(5))
 
@@ -32,29 +34,37 @@ class Clusters(db.Model):
 
     es_password = db.Column(db.String(100))
 
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    secure = db.Column(db.Boolean)
 
-class Organization(db.Model):
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
+
+class Organizations(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    organizational_name = db.Column(db.String(100))
+    name = db.Column(db.String(100), unique=True)
 
-    users = db.relationship('User', backref='organization')
+    users = db.relationship('Users', backref='organizations')
 
-    software_types = db.relationship('SoftwareTypes', backref='organization')
+    clusters = db.relationship('Clusters', backref='organizations')
 
-    languages = db.relationship('Languages', backref='organization')
+    software_types = db.relationship('SoftwareTypes', backref='organizations')
+
+    languages = db.relationship('Languages', backref='organizations')
 
 class SoftwareTypes(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     type = db.Column(db.String(50))
 
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+    instances = db.Column(db.Integer)
+
+    cluster_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
 
 class Languages(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     name = db.Column(db.String(150))
 
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+    instances = db.Column(db.Integer)
+
+    cluster_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
