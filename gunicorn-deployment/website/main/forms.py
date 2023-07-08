@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, FileField, RadioField
+from wtforms import StringField, SubmitField, PasswordField, FileField, RadioField, TextAreaField
 from website.special_fields import CheckField, MultiCheckField
 from wtforms.validators import InputRequired, Length, Optional
 
@@ -18,15 +18,31 @@ class AddSoftwareForm(FlaskForm):
     # Add software to clusters.
 
     # Which clusters to add the software to.
-    clusters = MultiCheckField('Elasticsearch Clusters', validators=[InputRequired()])
+    clusters = MultiCheckField('Elasticsearch Clusters')
     
     # Type of software to add.
     software_type = RadioField('Software Type', validators=[InputRequired()])
 
     # Applicable languages.
-    languages = MultiCheckField('Languages', validators=[Optional()])
+    languages = MultiCheckField('Languages')
 
-    submit = SubmitField('Submit')
+    name = StringField('Name For Software')
+
+    description = TextAreaField('Description of Software')
+
+    retrieval_instructions = TextAreaField('How to Retrieve this Software')
+
+    submit = SubmitField('Add Software')
+
+class AddSoftwareTypeForm(FlaskForm):
+    type = StringField('Software Type', validators=[InputRequired()])
+
+    submit = SubmitField('Add')
+
+class AddLanguageForm(FlaskForm):
+    lang = StringField('Language', validators=[InputRequired()])
+
+    submit = SubmitField('Add')
 
 class SearchForm(FlaskForm):
     # Form to search for software using Elasticsearch.

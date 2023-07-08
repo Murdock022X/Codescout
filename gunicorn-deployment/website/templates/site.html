@@ -20,8 +20,8 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-building-add"></i>
+                        <a class="nav-link dropdown-toggle text-black" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-building-add"></i>&nbsp;Organizations
                         </a>
                         <ul class="dropdown-menu">
                             {% if org %}
@@ -37,8 +37,16 @@
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="{{ url_for('main.search_engine') }}">Search</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="{{ url_for('main.add_software') }}">Add Software</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-black" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-plus-square"></i>&nbsp;Adding Software
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.add_software_type') }}">Add Software Type</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.add_language') }}">Add Language</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.add_software') }}">Add Software</a></li>
+                        </ul>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="{{ url_for('main.clusters') }}">Clusters</a>

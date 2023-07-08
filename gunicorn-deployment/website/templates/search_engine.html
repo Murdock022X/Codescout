@@ -22,8 +22,7 @@
 
     <div class="mb-3 input-group">
         <div class="form-outline">
-            {{ form.software_types(class='form-select', id='search-query-input', multiple='multiple', style='list-style: none;') }}
-            <label class="form-label" for="search-query-input">{{ form.search_query.label }}</label>
+            {{ form.search_query(class='form-select', id='search-query-input', multiple='multiple', style='list-style: none;', placeholder='Search For Software') }}
         </div>
         {{ form.submit(class='btn btn-primary') }}
     </div>

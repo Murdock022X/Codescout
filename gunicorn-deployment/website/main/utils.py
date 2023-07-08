@@ -26,7 +26,11 @@ def save_certs(certs_file, host, org_name, app):
     certs_file.data.save(str(certs_pth / Path(secure_filename('http_ca.crt'))))
 
 def get_es_connection(host, port, secure, org_name, app, username, password):
-    conn = Elasticsearch(assemble_es_url(host=host, port=port, secure=secure), ca_certs=assemble_cert_path(host=host, org_name=org_name, app=app), basic_auth=(username, password))
+    url = assemble_es_url(host=host, port=port, secure=secure)
+    cert_path = assemble_cert_path(host=host, org_name=org_name, app=app) / Path('http_ca.crt')
+    auth = (username, password)
+
+    conn = Elasticsearch(url, ca_certs=cert_path, basic_auth=auth)
 
     return conn
 

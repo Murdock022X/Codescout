@@ -1,0 +1,18 @@
+{% extends 'site.html' %}
+
+{% block content %}
+
+<form method="POST" enctype="multipart/form-data">
+    {{ form.csrf_token }}
+
+    <div class="mb-3">
+        <label class="form-label" for="type-input">{{ form.type.label }}</label>
+        {{ form.type(class='form-control', type='text', id='type-input') }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.submit(class='btn btn-primary') }}
+    </div>
+</form>
+
+{% endblock %}

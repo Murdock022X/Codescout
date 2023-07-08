@@ -2,21 +2,50 @@
 
 {% block content %}
 
-<form method="POST" enctype="multipart/form-data">
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+<!-- Initialize the plugin: -->
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#clusters-input').multiselect();
+    });
+
+    $(document).ready(function() {
+        $('#language-input').multiselect();
+    });
+</script>
+
+<form method="POST">
     {{ form.csrf_token }}
+
     <div class="mb-3">
         <label class="form-label" for="clusters-input">{{ form.clusters.label }}</label>
-        {{ form.clusters(class='form-control', id='clusters-input', multiple='multiple', style='list-style: none;') }}
+        {{ form.clusters(class='form-control', id='clusters-input', style='list-style: none;', multiple='multiple', size=10) }}
     </div>
 
     <div class="mb-3">
         <label class="form-label" for="swt-input">{{ form.software_type.label }}</label>
-        {{ form.software_type(class='form-control', type='text', id='swt-input') }}
+        {{ form.software_type(class='form-control', id='swt-input', style='list-style: none;') }}
     </div>
 
     <div class="mb-3">
         <label class="form-label" for="language-input">{{ form.languages.label }}</label>
-        {{ form.languages(class='form-control', id='language-input', multiple='multiple', style='list-style: none;') }}
+        {{ form.languages(class='form-control', id='language-input', style='list-style: none;', multiple='multiple', size=10) }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="name-input">{{ form.name.label }}</label>
+        {{ form.name(class='form-control', type='text', id='name-input') }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="desc-input">{{ form.description.label }}</label>
+        {{ form.description(class='form-control', type='text', id='desc-input') }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="insc-input">{{ form.retrieval_instructions.label }}</label>
+        {{ form.retrieval_instructions(class='form-control', type='text', id='insc-input') }}
     </div>
 
     <div class="mb-3">

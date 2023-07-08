@@ -1,11 +1,11 @@
 from flask import render_template, Blueprint, redirect, url_for, current_app, flash, get_flashed_messages, session
 from flask_login import current_user, login_required
 
-from website.models import Users, Clusters, SoftwareTypes, Organizations
+from website.models import Users, Clusters, SoftwareTypes, Languages, Organizations
 
 from werkzeug.utils import secure_filename
 
-from website.main.forms import CreateOrgForm, JoinOrgForm, SearchForm, AddClusterForm, EditClusterForm, AddSoftwareForm
+from website.main.forms import CreateOrgForm, JoinOrgForm, SearchForm, AddClusterForm, EditClusterForm, AddSoftwareForm, AddSoftwareTypeForm, AddLanguageForm
 
 from elasticsearch import Elasticsearch
 
@@ -58,6 +58,7 @@ def create_organization():
         db.session.commit()
         current_user.organization_id = org.id
         current_user.organization_name = org.name
+        current_user.admin_status = True
 
         db.session.commit()
 
@@ -82,7 +83,7 @@ def search_engine():
 
     form = SearchForm()
 
-    form.clusters.choices = [(cluster.name + ' ({}:{})'.format(cluster.es_host, cluster.es_port), cluster.id) for cluster in org.clusters]
+    form.clusters.choices = [(cluster.id, cluster.name + ' ({}:{})'.format(cluster.es_host, cluster.es_port)) for cluster in org.clusters]
 
     form.software_types.choices = [sw.type for sw in org.software_types]
 
@@ -97,24 +98,82 @@ def search_engine():
 
     return render_template('search_engine.html', form=form, org=org)
 
-@main.route('/add_software')
+@main.route('/add_software_type', methods=['GET', 'POST'])
+@login_required
+@org_required
+def add_software_type():
+    form = AddSoftwareTypeForm()
+
+    org = Organizations.query.get(current_user.organization_id)
+
+    if form.validate_on_submit():
+        type = form.type.data
+
+        for swt in org.software_types:
+            if swt.type == type:
+                flash('Type Already Present', category='danger')
+                return redirect(url_for('main.add_software_type'))
+
+        type = SoftwareTypes(type=type, instances=0, org_id=org.id)
+
+        db.session.add(type)
+        db.session.commit()
+
+        return redirect(url_for('main.add_software_type'))
+
+    return render_template('add_software_type.html', org=org, form=form)
+
+@main.route('/add_language', methods=['GET', 'POST'])
+@login_required
+@org_required
+def add_language():
+    form = AddLanguageForm()
+
+    org = Organizations.query.get(current_user.organization_id)
+
+    if form.validate_on_submit():
+        lang = form.lang.data
+
+        for dblang in org.languages:
+            if lang == dblang:
+                flash('Language Already Present', category='danger')
+                return redirect(url_for('main.add_language'))
+            
+        lang = Languages(name=lang, instances=0, org_id=org.id)
+
+        db.session.add(lang)
+        db.session.commit()
+
+        return redirect(url_for('main.add_language'))
+    
+    return render_template('add_language.html', org=org, form=form)
+
+@main.route('/add_software', methods=['GET', 'POST'])
 @login_required
 @org_required
 def add_software():
     form = AddSoftwareForm()
 
-    org = None
-    if current_user.is_authenticated and current_user.organization_id:
-        org = Organizations.query.get(current_user.organization_id)
+    org = Organizations.query.get(current_user.organization_id)
 
-    form.clusters.choices = [(cluster.name + ' ({}:{})'.format(cluster.es_host, cluster.es_port), cluster.id) for cluster in org.clusters]
+    form.clusters.choices = [(cluster.id, cluster.name + ' ({}:{})'.format(cluster.es_host, cluster.es_port)) for cluster in org.clusters]
 
     form.software_type.choices = [software_type.type for software_type in org.software_types]
 
     form.languages.choices = [lang.name for lang in org.languages]
 
+    for f, e in form.errors.items():
+        for em in e:
+            print(f, em)
+
     if form.validate_on_submit():
-        
+        print(1)
+        doc = {'software_type': form.software_type.data, 
+               'languages': form.languages.data, 
+               'name': form.name.data, 
+               'description': form.description.data, 
+               'retrieval_instructions': form.retrieval_instructions.data}
+
         for cluster_id in form.clusters.data:
             cluster = Clusters.query.get(cluster_id)
 
@@ -125,8 +184,10 @@ def add_software():
                                    username=cluster.username,
                                    password=cluster.password,
                                    app=current_app)
+
+            es.index(index='software-index', document=doc)
             
-            es.index(index='software-index', )
+        return redirect(url_for('main.add_software'))
 
     return render_template('add_software.html', form=form, org=org)
 
@@ -139,16 +200,19 @@ def test_es_conn(cluster_id):
     org = Organizations.query.get(current_user.organization_id)
 
     es = get_es_connection(host=cluster.es_host, 
-                             port=cluster.es_port, 
-                             secure=cluster.secure, 
-                             org_name=org.name,
-                             username=cluster.es_user, 
-                             password=cluster.es_password,
-                             app=current_app)
+                            port=cluster.es_port, 
+                            secure=cluster.secure, 
+                            org_name=org.name,
+                            username=cluster.es_user, 
+                            password=cluster.es_password,
+                            app=current_app)
     
-    
+    if es.ping():
+        flash("Connection Verified", category='success')
+    else:
+        flash("Connection Failed", category='danger')
 
-    return True
+    return redirect(url_for('main.clusters'))
 
 @main.route('/clusters', methods=['GET', 'POST'])
 @login_required
@@ -156,9 +220,7 @@ def test_es_conn(cluster_id):
 def clusters(): 
     form = AddClusterForm()
 
-    org = None
-    if current_user.is_authenticated and current_user.organization_id:
-        org = Organizations.query.get(current_user.organization_id)
+    org = Organizations.query.get(current_user.organization_id)
 
     if form.validate_on_submit():
         name = form.name.data
@@ -207,9 +269,7 @@ def edit_cluster(cluster_id):
     # Get the form for editing.
     form = EditClusterForm()
 
-    org = None
-    if current_user.is_authenticated and current_user.organization_id:
-        org = Organizations.query.get(current_user.organization_id)
+    org = Organizations.query.get(current_user.organization_id)
 
     # Validate the form submission.
     if form.validate_on_submit():

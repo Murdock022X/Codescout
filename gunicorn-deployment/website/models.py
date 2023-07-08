@@ -17,7 +17,7 @@ class Users(UserMixin, db.Model):
 
     last_name = db.Column(db.String(50))
 
-    admin_status = db.Column(db.Boolean)
+    admin_status = db.Column(db.Boolean, default=False)
 
     organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
 
@@ -58,7 +58,7 @@ class SoftwareTypes(db.Model):
 
     instances = db.Column(db.Integer)
 
-    cluster_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
+    org_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
 
 class Languages(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -67,4 +67,4 @@ class Languages(db.Model):
 
     instances = db.Column(db.Integer)
 
-    cluster_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
+    org_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
