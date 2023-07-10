@@ -21,6 +21,34 @@ class Users(UserMixin, db.Model):
 
     organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
 
+    messages = db.relationship('Messages', backref='users')
+
+class Messages(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    title = db.Column(db.String(200))
+
+    message = db.Column(db.String(5000))
+
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+class ClusterRequests(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    name = db.Column(db.String(100))
+
+    es_host = db.Column(db.String(200), unique=True)
+
+    es_port = db.Column(db.String(5))
+
+    es_user = db.Column(db.String(100))
+
+    es_password = db.Column(db.String(100))
+
+    secure = db.Column(db.Boolean)
+
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'))
+
 class Clusters(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -44,6 +72,8 @@ class Organizations(db.Model):
     name = db.Column(db.String(100), unique=True)
 
     users = db.relationship('Users', backref='organizations')
+
+    cluster_requests = db.relationship('ClusterRequests', backref='organizations')
 
     clusters = db.relationship('Clusters', backref='organizations')
 

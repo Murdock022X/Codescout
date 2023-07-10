@@ -22,6 +22,8 @@ def create_app():
 
         app.config['SQLALCHEMY_DATABASE_URI'] = config['SQLALCHEMY_DATABASE_URI']
 
+        app.config['SEARCH_PAGE_LEN'] = config["SEARCH_PAGE_LEN"]
+
     db.init_app(app=app)
 
     login_manager.init_app(app=app)

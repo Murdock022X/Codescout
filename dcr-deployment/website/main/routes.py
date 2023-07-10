@@ -1,21 +1,18 @@
 from flask import render_template, Blueprint, redirect, url_for, current_app, flash, get_flashed_messages, session
 from flask_login import current_user, login_required
 
-from website.models import Users, Clusters, SoftwareTypes, Languages, Organizations
+from website.models import Users, Clusters, SoftwareTypes, Languages, Organizations, Messages
 
 from werkzeug.utils import secure_filename
 
-from website.main.forms import CreateOrgForm, JoinOrgForm, SearchForm, AddClusterForm, EditClusterForm, AddSoftwareForm, AddSoftwareTypeForm, AddLanguageForm
-
-from elasticsearch import Elasticsearch
+from website.main.forms import CreateOrgForm, JoinOrgForm, SearchForm, \
+AddClusterForm, EditClusterForm, AddSoftwareForm, AddSoftwareTypeForm, \
+AddLanguageForm, MessageForm
 
 from website import db
 
-import os
-
-from pathlib import Path
-
-from website.main.utils import assemble_es_url, assemble_cert_path, save_certs, get_es_connection, org_required
+from website.main.decorators import org_required, admin_required
+from website.main.utils import save_certs, get_es_connection, get_search_page_data, PageData
 
 main = Blueprint('main', __name__)
 
@@ -27,6 +24,60 @@ def index():
         org = Organizations.query.get(current_user.organization_id)
 
     return render_template('index.html', org=org)
+
+@main.route('/inbox')
+@login_required
+@org_required
+def inbox():
+
+    org = Organizations.query.get(current_user.organization_id)
+    
+    return render_template('inbox.html', org=org, messages=current_user.messages)
+
+@main.route('/create_message')
+@login_required
+@org_required
+@admin_required
+def create_message():
+
+    org = Organizations.query.get(current_user.organization_id)
+
+    form = MessageForm()
+
+    if form.validate_on_submit():
+        message = Messages(title=form.title.data, 
+                           message=form.message.data, 
+                           user_id=current_user.id)
+        
+        db.session.add(message)
+        db.session.commit()
+
+    return render_template('create_message.html', org=org, form=form)
+
+@main.route('/message_view/<int:message_id>')
+@login_required
+@org_required
+def message_view(message_id) -> str:
+    """A Flask route for the DCR website that allows the user to view a specific message.
+
+    Args:
+        message_id (int): The database id for the message.
+
+    Returns:
+        str: The rendered html string for the message view.
+    """
+
+    org = Organizations.query.get(current_user.organization_id)
+
+    message = Messages.query.get(message_id)
+
+    return render_template('message_view.html', org=org, message=message)
+
+@main.route('/cluster_requests')
+@login_required
+@org_required
+def cluster_requests():
+    return render_template()
 
 @main.route('/join_organization', methods=['GET', 'POST'])
 @login_required
@@ -68,35 +119,103 @@ def create_organization():
 
     return render_template('add_org.html', form=form, org=org)
 
-@main.route('/search_engine', methods=['GET', 'POST'])
+@main.route('/search_engine/<int:page_idx>', methods=['GET', 'POST'])
 @login_required
 @org_required
-def search_engine():
-    
-    org = None
-    if current_user.is_authenticated and current_user.organization_id:
-        org = Organizations.query.get(current_user.organization_id)
-    
-    if not org:
-        flash('Please join an organization to search clusters.', category='danger')
-        return redirect(url_for('main.index'))
+def search_engine(page_idx):
+
+    org = Organizations.query.get(current_user.organization_id)
 
     form = SearchForm()
 
     form.clusters.choices = [(cluster.id, cluster.name + ' ({}:{})'.format(cluster.es_host, cluster.es_port)) for cluster in org.clusters]
 
-    form.software_types.choices = [sw.type for sw in org.software_types]
+    form.software_type.choices = [sw.type for sw in org.software_types]
 
     form.languages.choices = [lang.name for lang in org.languages]
 
-    if form.validate_on_submit():
-        clusters = form.cluster_selections.data
+    hit_responses = []
+    hit_total = 0
 
-        search_type = form.search_type.data
+    if form.validate_on_submit():
+        clusters = form.clusters.data
+
+        software_type = form.software_type.data
 
         search_query = form.search_query.data
 
-    return render_template('search_engine.html', form=form, org=org)
+        for cluster_id in clusters:
+            cluster = Clusters.query.get(cluster_id)
+            es = get_es_connection(host=cluster.es_host,
+                                    port=cluster.es_port,
+                                    secure=cluster.secure,
+                                    org_name=org.name,
+                                    username=cluster.es_user,
+                                    password=cluster.es_password,
+                                    app=current_app)
+            
+            response = es.search(index='software-index', query={"match": {"description": {"query": search_query}}})
+
+            for resp in response['hits']['hits']:
+                hit_responses.append(PageData(resp, cluster.id))
+
+            hit_total += response['hits']['total']['value']
+
+    else:
+
+        for cluster in org.clusters:
+            es = get_es_connection(host=cluster.es_host,
+                                    port=cluster.es_port,
+                                    secure=cluster.secure,
+                                    org_name=org.name,
+                                    username=cluster.es_user,
+                                    password=cluster.es_password,
+                                    app=current_app)
+            
+            response = es.search(index="software-index", query={"match_all": {}})
+
+            for resp in response['hits']['hits']:
+                hit_responses.append(PageData(resp, cluster.id))
+
+            hit_total += response['hits']['total']['value']
+
+    total_pages = hit_total // current_app.config["SEARCH_PAGE_LEN"]
+
+    if hit_total % current_app.config["SEARCH_PAGE_LEN"] > 0:
+        total_pages += 1
+
+    page_len = current_app.config["SEARCH_PAGE_LEN"]
+    if page_idx == total_pages - 1:
+        page_len = hit_total % current_app.config["SEARCH_PAGE_LEN"]
+
+    page_data = get_search_page_data(data=hit_responses, 
+                                     page_idx=page_idx, 
+                                     page_len=current_app.config["SEARCH_PAGE_LEN"])
+
+    return render_template('search_engine.html', form=form, org=org, hit_total=hit_total, total_pages=total_pages, page_data=page_data, page_idx=page_idx, page_len=page_len)
+
+@main.route('/software_info/<es_id>/<int:cluster_id>')
+@login_required
+@org_required
+def software_info(es_id, cluster_id):
+
+    org = Organizations.query.get(current_user.organization_id)
+
+    cluster = Clusters.query.get(cluster_id)
+
+    es = get_es_connection(host=cluster.es_host,
+                                    port=cluster.es_port,
+                                    secure=cluster.secure,
+                                    org_name=org.name,
+                                    username=cluster.es_user,
+                                    password=cluster.es_password,
+                                    app=current_app)
+
+    response = es.search(index='software-index', query={"term": {"_id": es_id}})
+
+    item = response['hits']['hits'][0]['_source']
+
+    return render_template('software_info.html', org=org, item=item)
 
 @main.route('/add_software_type', methods=['GET', 'POST'])
 @login_required
@@ -135,7 +254,7 @@ def add_language():
         lang = form.lang.data
 
         for dblang in org.languages:
-            if lang == dblang:
+            if lang == dblang.name:
                 flash('Language Already Present', category='danger')
                 return redirect(url_for('main.add_language'))
             
@@ -158,16 +277,11 @@ def add_software():
 
     form.clusters.choices = [(cluster.id, cluster.name + ' ({}:{})'.format(cluster.es_host, cluster.es_port)) for cluster in org.clusters]
 
-    form.software_type.choices = [software_type.type for software_type in org.software_types]
+    form.software_type.choices = [(software_type.type, software_type.type) for software_type in org.software_types]
 
-    form.languages.choices = [lang.name for lang in org.languages]
-
-    for f, e in form.errors.items():
-        for em in e:
-            print(f, em)
+    form.languages.choices = [(lang.name, lang.name) for lang in org.languages]
 
     if form.validate_on_submit():
-        print(1)
         doc = {'software_type': form.software_type.data, 
                'languages': form.languages.data, 
                'name': form.name.data, 
@@ -180,9 +294,9 @@ def add_software():
             es = get_es_connection(host=cluster.es_host,
                                    port=cluster.es_port,
                                    secure=cluster.secure,
-                                   org_name=org,
-                                   username=cluster.username,
-                                   password=cluster.password,
+                                   org_name=org.name,
+                                   username=cluster.es_user,
+                                   password=cluster.es_password,
                                    app=current_app)
 
             es.index(index='software-index', document=doc)

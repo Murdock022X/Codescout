@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, FileField, RadioField, TextAreaField
+from wtforms import StringField, SubmitField, PasswordField, FileField, RadioField, TextAreaField, BooleanField
 from website.special_fields import CheckField, MultiCheckField
 from wtforms.validators import InputRequired, Length, Optional
 
@@ -14,17 +14,29 @@ class JoinOrgForm(FlaskForm):
 
     submit = SubmitField('Send Request')
 
+class MessageForm(FlaskForm):
+    
+    all_org_users = BooleanField('Send to ')
+
+    recipient = StringField('Recipient', validators=[Optional()])
+
+    title = StringField('Title', validators=[InputRequired()])
+
+    message = TextAreaField('Message', validators=[InputRequired()])
+
+    submit = SubmitField('Send')
+
 class AddSoftwareForm(FlaskForm):
     # Add software to clusters.
 
-    # Which clusters to add the software to.
-    clusters = MultiCheckField('Elasticsearch Clusters')
+    # Which clusters to add the software to. coerce=(data type) is very important, if not present the form will not be validated
+    clusters = MultiCheckField('Elasticsearch Clusters', coerce=int)
     
     # Type of software to add.
     software_type = RadioField('Software Type', validators=[InputRequired()])
 
-    # Applicable languages.
-    languages = MultiCheckField('Languages')
+    # Applicable languages. coerce=(data type) is very important, if not present the form will not be validated.
+    languages = MultiCheckField('Languages', coerce=str)
 
     name = StringField('Name For Software')
 
@@ -51,16 +63,16 @@ class SearchForm(FlaskForm):
     # dynamic choices, assign choices based on user in route.
 
     # Select which clusters you want to search.
-    clusters = MultiCheckField('Clusters')
+    clusters = MultiCheckField('Clusters', coerce=int)
 
     # Select which software types you're looking for.
-    software_types = MultiCheckField('Software Types')
+    software_type = RadioField('Software Types', validators=[InputRequired()])
 
     # Select which languages the software is written in.
-    languages = MultiCheckField('Languages')
+    languages = MultiCheckField('Languages', coerce=str)
 
     # The search query to search for.
-    search_query = StringField('Functionality Description', validators=[Length(max=500)])
+    search_query = StringField('Functionality Description', validators=[Length(max=1000)])
 
     submit = SubmitField('Search')
     
