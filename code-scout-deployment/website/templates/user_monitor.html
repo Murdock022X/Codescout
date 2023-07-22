@@ -1,0 +1,42 @@
+
+{% extends 'site.html' %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row gy-3">
+
+    {% for entry in session['monitor_users'] %}
+        <div class="card">
+            <div class="card-body">
+                <h5>{{ entry['item']['name'] }}</h5>
+                <p>{{ entry['item']['description'] }}</p>
+                <a class="btn btn-primary" href="{{ url_for('main.software_info', es_id=entry['es_id'], cluster_id=entry['cluster_id']) }}">View</a>
+            </div>
+        </div>
+    {% endfor %}
+
+    </div>
+</div>
+
+<hr>
+
+<nav aria-label="Page Navigation">
+    <ul class="pagination">
+        <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=0) }}"><i class="bi bi-caret-left"></i><i class="bi bi-caret-left"></i></a></li>
+        {% if page_idx > 0 %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=page_idx - 1) }}"><i class="bi bi-caret-left"></i></a></li>
+        {% else %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=page_idx) }}"><i class="bi bi-caret-left"></i></a></li>
+        {% endif %}
+
+        {% if (total_pages - 1) > page_idx %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=page_idx + 1) }}"><i class="bi bi-caret-right"></i></a></li>
+        {% else %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=page_idx) }}"><i class="bi bi-caret-right"></i></a></li>
+        {% endif %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=(total_pages - 1)) }}"><i class="bi bi-caret-right"></i><i class="bi bi-caret-right"></i></a></li>
+    </ul>
+</nav>
+
+{% endblock %}

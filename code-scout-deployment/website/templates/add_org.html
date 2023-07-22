@@ -1,0 +1,19 @@
+{% extends 'site.html' %}
+
+{% block content %}
+
+<h5>Note that the account used to create your organization will be the admin account for your organization.</h5>
+
+<form method="POST">
+    {{ form.csrf_token }}
+    <div class="mb-3">
+        <label class="form-label" for="org-input">{{ form.org_name.label }}</label>
+        {{ form.org_name(class='form-control', type='text', id='org-input') }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.submit(class='btn btn-primary') }}
+    </div>
+</form>
+
+{% endblock %}

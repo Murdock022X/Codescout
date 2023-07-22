@@ -1,5 +1,0 @@
-{
-    "SECRET_KEY": "b7850a63987778b77f788b69fe526d26",
-    "SQLALCHEMY_DATABASE_URI": "postgresql://admin:admin@localhost:5432/dcr",
-    "SEARCH_PAGE_LEN": 5
-}

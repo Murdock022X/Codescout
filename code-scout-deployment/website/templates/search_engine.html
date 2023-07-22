@@ -1,0 +1,62 @@
+{% extends 'site.html' %}
+
+{% block content %}
+
+<form method="POST">
+    {{ form.csrf_token }}
+
+    <div class="mb-3">
+        <label class="form-label" for="swt-input">{{ form.software_type.label }}</label>
+        {{ form.software_type(class='form-control', id='swt-input', style='list-style: none;') }}
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="language-input">{{ form.languages.label }}</label>
+        {{ form.languages(class='form-control', id='language-input', multiple='multiple', style='list-style: none;') }}
+    </div>
+
+    <div class="mb-3 input-group">
+        <div class="form-outline">
+            {{ form.search_query(class='form-control', type='text', id='search-query-input', placeholder='Keywords For Your Software') }}
+        </div>
+        {{ form.submit(class='btn btn-primary') }}
+    </div>
+</form>
+
+<div class="container">
+    <div class="row gy-3">
+
+    {% for entry in page_data %}
+        <div class="card">
+            <div class="card-body">
+                <h5>{{ entry.item['name'] }}</h5>
+                <p>{{ entry.item['description'] }}</p>
+                <a class="btn btn-primary" href="{{ url_for('main.software_info', es_id=entry['es_id'], cluster_id=entry['cluster_id']) }}">View</a>
+            </div>
+        </div>
+    {% endfor %}
+
+    </div>
+</div>
+
+<hr>
+
+<nav aria-label="Page Navigation">
+    <ul class="pagination">
+        <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=0) }}"><i class="bi bi-caret-left"></i><i class="bi bi-caret-left"></i></a></li>
+        {% if page_idx > 0 %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=page_idx - 1) }}"><i class="bi bi-caret-left"></i></a></li>
+        {% else %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=page_idx) }}"><i class="bi bi-caret-left"></i></a></li>
+        {% endif %}
+
+        {% if (total_pages - 1) > page_idx %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=page_idx + 1) }}"><i class="bi bi-caret-right"></i></a></li>
+        {% else %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=page_idx) }}"><i class="bi bi-caret-right"></i></a></li>
+        {% endif %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=(total_pages - 1)) }}"><i class="bi bi-caret-right"></i><i class="bi bi-caret-right"></i></a></li>
+    </ul>
+</nav>
+
+{% endblock %}
