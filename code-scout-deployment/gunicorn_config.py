@@ -7,5 +7,5 @@ bind = '127.0.0.1:8080'
 workers = 2
 
 # Where to send logs to. TODO: add volume that records logs from container.
-accesslog = '/home/kaiser/package-search/gunicorn-deployment/logs/gunicorn.access.log'
-errorlog = '/home/kaiser/package-search/gunicorn-deployment/logs/gunicorn.error.log'
+accesslog = '/opt/codescout/logs/gunicorn.access.log'
+errorlog = '/opt/codescout/logs/gunicorn.error.log'

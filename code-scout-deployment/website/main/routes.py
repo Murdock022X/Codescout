@@ -115,48 +115,59 @@ def search_engine():
 
     form.software_type.choices = [sw.type for sw in org.software_types]
 
-    form.languages.choices = [lang.name for lang in org.languages]
+    form.language.choices = [lang.name for lang in org.languages]
 
     if form.validate_on_submit():
 
         software_type = form.software_type.data
         query = form.search_query.data
-        languages = form.languages.data
+        language = form.language.data
 
-        return redirect(url_for('main.search_results', page=0, q=query, sw=software_type, langs=url_serialize(languages)))
+        print ('0', query, '0')
+        q_check = True
+        if len(query) == 0:
+            q_check = False
+            query = "match_all"
+
+        sw_check = True
+        if software_type is None:
+            sw_check = False
+            software_type = 'None'
+        
+        lang_check = True
+        if language is None:
+            lang_check = False
+            language = 'None'
+
+        return redirect(url_for('main.search_results', page=0, q_check=q_check, q=query, sw_check=sw_check, sw=software_type, lang_check=lang_check, lang=language))
 
     return render_template('search_engine.html', form=form, org=org)
 
-@main.route('/search_results/<int:page>/<q>/<sw>/<langs>')
+@main.route('/search_results/<int:page>/<int:q_check>/<q>/<int:sw_check>/<sw>/<int:lang_check>/<lang>')
 @login_required
 @org_required
-def search_results(page, q, sw, langs):
+def search_results(page, q_check, q, sw_check, sw, lang_check, lang):
+    q_check = bool(q_check)
+    sw_check = bool(sw_check)
+    lang_check = bool(lang_check)
+
     org = Organizations.query.get(current_user.organization_id)
 
     cluster = Clusters.query.get(org.cluster_id)
 
-    languages = url_deserialize(langs)
+    search_query = {"match_all": {}}
 
-    from_, size = get_from_and_size(page=page, page_len=current_app.config["SEARCH_PAGE_LEN"])
-
-    search_query = \
-    {
-        "match": 
+    if q_check:
+        search_query = \
         {
-            "description":
+            "match": 
             {
-                "query": q
+                "description":
+                {
+                    "query": q
+                }
             }
-        },
-        "bool": 
-        {
-            "filter":
-            [
-                {"term": {"software_type": sw}},
-                {"term": {"languages": languages}}
-            ]
         }
-    }
 
     es = get_es_connection(
         host=cluster.es_host,
@@ -168,11 +179,31 @@ def search_results(page, q, sw, langs):
         app=current_app
     )
 
-    page_data = es.search(index="software-index", from_=from_, size=size, query=search_query)
+    response = es.search(index="software-index", query=search_query)
+    
+    valid_data = []
 
-    print(page_data)
+    for entry in response['hits']['hits']:
+        if sw_check:
+            if entry['_source']['software_type'] != sw:
+                print(0)
+                continue
+        
+        if lang_check:
+            if entry['_source']['language'] != lang:
+                print(1)
+                continue
+        
+        valid_data.append(entry)
 
-    return render_template('search_results.html', org=org, page_data=page_data)
+    total_pages = len(valid_data) // current_app.config['SEARCH_PAGE_LEN']
+
+    if len(valid_data) % current_app.config['SEARCH_PAGE_LEN'] > 0:
+        total_pages += 1
+
+    page_data = valid_data[page * current_app.config["SEARCH_PAGE_LEN"]:page * current_app.config["SEARCH_PAGE_LEN"] + current_app.config["SEARCH_PAGE_LEN"]]
+
+    return render_template('search_results.html', org=org, page_data=page_data, page=page, q_check=q_check, q=q, sw_check=sw_check, sw=sw, lang_check=lang_check, lang=lang, total_pages=total_pages)
 
 @main.route('/software_info/<es_id>')
 @login_required
@@ -213,7 +244,7 @@ def add_software_type():
                 flash('Type Already Present', category='danger')
                 return redirect(url_for('main.add_software_type'))
 
-        type = SoftwareTypes(type=type, instances=0, org_id=org.id)
+        type = SoftwareTypes(type=type, org_id=org.id)
 
         db.session.add(type)
         db.session.commit()
@@ -238,7 +269,7 @@ def add_language():
                 flash('Language Already Present', category='danger')
                 return redirect(url_for('main.add_language'))
             
-        lang = Languages(name=lang, instances=0, org_id=org.id)
+        lang = Languages(name=lang, org_id=org.id)
 
         db.session.add(lang)
         db.session.commit()
@@ -257,11 +288,11 @@ def add_software():
 
     form.software_type.choices = [(software_type.type, software_type.type) for software_type in org.software_types]
 
-    form.languages.choices = [(lang.name, lang.name) for lang in org.languages]
+    form.language.choices = [(lang.name, lang.name) for lang in org.languages]
 
     if form.validate_on_submit():
         doc = {'software_type': form.software_type.data, 
-               'languages': form.languages.data, 
+               'language': form.language.data, 
                'name': form.name.data, 
                'description': form.description.data, 
                'install_instructions': form.retrieval_instructions.data}
@@ -290,7 +321,12 @@ def clusters():
 
     org = Organizations.query.get(current_user.organization_id)
 
+    cluster = None
+    if org.cluster_id:
+        cluster = Clusters.query.get(org.cluster_id)
+
     if form.validate_on_submit():
+
         name = form.name.data
 
         es_host = form.es_host.data
@@ -306,85 +342,40 @@ def clusters():
         if secure == 'No':
             sb = False
 
-        cluster = Clusters(name=name, es_host=es_host, es_port=es_port, es_user=es_user, 
-                    es_password=es_password, secure=sb, organization_id=org.id, status=0)
-        
-        db.session.add(cluster)
+        if cluster is None:
+            cluster = Clusters(
+                name=name, 
+                es_host=es_host, 
+                es_port=es_port, 
+                es_user=es_user, 
+                es_password=es_password, 
+                secure=sb,
+                org_id=org.id
+            )
+            db.session.add(cluster)
+
+        else:
+            cluster.name = name
+            cluster.es_host = es_host
+            cluster.es_port = es_port
+            cluster.es_user = es_user
+            cluster.es_password = es_password
+            cluster.secure = sb
+
+        db.session.commit()
+
+        org.cluster_id = cluster.id
 
         db.session.commit()
 
         save_certs(certs_file=form.es_certs_file, app=current_app, 
                    host=es_host, org_name=org.name)
         
-        flash('Cluster request sent successfully.', category='success')
+        flash('Cluster configuration updated.', category='success')
 
         return redirect(url_for('main.clusters'))
 
-    clusters = [cluster for cluster in org.clusters if cluster.status == 1]
-
-    return render_template('clusters.html', form=form, org=org, clusters=clusters)
-
-@main.route('/edit_cluster/<int:cluster_id>', methods=['GET', 'POST'])
-@login_required
-@org_required
-@admin_required
-def edit_cluster(cluster_id):
-    """
-    + Completed +
-    Edit cluster information.
-
-    :param cluster_id: The id of the cluster to edit.
-    :return: If form had a valid POST return redirect to the add cluster page. 
-    Else render the template for add cluster.
-    """
-
-    # Get the cluster to be edited.
-    cluster = Clusters.query.get(cluster_id)
-
-    if cluster.status != 1:
-        flash('Clusters must be approved before they can be edited.', category='danger')
-        return redirect(url_for('main.clusters'))
-
-    # Get the form for editing.
-    form = EditClusterForm()
-
-    org = Organizations.query.get(current_user.organization_id)
-
-    # Validate the form submission.
-    if form.validate_on_submit():
-        # Edit the name data.
-        if form.name.data:
-            cluster.name = form.name.data
-
-        # Edit the host data.
-        if form.es_host.data:
-            cluster.es_host = form.es_host.data
-
-        # Edit the port data.
-        if form.es_port.data:
-            cluster.es_port = form.es_port.data
-
-        # Edit the cert file.
-        if form.es_certs_file.data:
-            save_certs(certs_file=form.es_certs_file, app=current_app, 
-                   host=cluster.es_host, org_name=Organizations.query.get(current_user.organization_id).name)
-        
-        # Edit the Elasticsearch user.
-        if form.es_user.data:
-            cluster.es_user = form.es_user.data
-        
-        # Edit the Elasticsearch password.
-        if form.es_password.data:
-            cluster.es_password = form.es_password.data
-
-        # Commit the edits.
-        db.session.commit()
-
-        # Redirect to add cluster page.
-        return redirect(url_for('main.clusters'))
-
-    # Render the editing template.
-    return render_template('edit_cluster.html', form=form, org=org)
+    return render_template('clusters.html', form=form, org=org, cluster=cluster)
 
 @main.route('/delete_cluster/<int:cluster_id>')
 @login_required

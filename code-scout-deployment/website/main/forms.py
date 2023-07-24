@@ -21,13 +21,13 @@ class AddSoftwareForm(FlaskForm):
     software_type = RadioField('Software Type', validators=[InputRequired()])
 
     # Applicable languages. coerce=(data type) is very important, if not present the form will not be validated.
-    languages = MultiCheckField('Languages', coerce=str)
+    language = RadioField('Language', validators=[InputRequired()])
 
-    name = StringField('Name For Software')
+    name = StringField('Name For Software', validators=[InputRequired()])
 
-    description = TextAreaField('Description of Software')
+    description = TextAreaField('Description of Software', validators=[InputRequired()])
 
-    retrieval_instructions = TextAreaField('How to Retrieve this Software')
+    retrieval_instructions = TextAreaField('How to Retrieve this Software', validators=[InputRequired()])
 
     submit = SubmitField('Add Software')
 
@@ -48,13 +48,13 @@ class SearchForm(FlaskForm):
     # dynamic choices, assign choices based on user in route.
 
     # Select which software types you're looking for.
-    software_type = RadioField('Software Types', validators=[InputRequired()])
+    software_type = RadioField('Software Types', validators=[Optional()])
 
     # Select which languages the software is written in.
-    languages = MultiCheckField('Languages', coerce=str)
+    language = RadioField('Languages', validators=[Optional()])
 
     # The search query to search for.
-    search_query = StringField('Functionality Description', validators=[Length(max=1000)])
+    search_query = StringField('Functionality Description', default='', validators=[Length(max=1000)])
 
     submit = SubmitField('Search')
     
@@ -82,7 +82,7 @@ class AddClusterForm(FlaskForm):
     # Should Code Scout use a secure connection?
     secure = RadioField('Secure Connection?', choices=['Yes', 'No'], validators=[InputRequired()])
 
-    submit = SubmitField('Request Add')
+    submit = SubmitField('Save')
 
 class EditClusterForm(FlaskForm):
     # Edit cluster information.

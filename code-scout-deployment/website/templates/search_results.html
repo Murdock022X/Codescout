@@ -8,9 +8,9 @@
     {% for entry in page_data %}
         <div class="card">
             <div class="card-body">
-                <h5>{{ entry['hits']['hits']['_source']['name'] }}</h5>
-                <p>{{ entry['hits']['hits']['_source']['description'] }}</p>
-                <a class="btn btn-primary" href="{{ url_for('main.software_info', es_id=entry['es_id']) }}">View</a>
+                <h5>{{ entry['_source']['name'] }}</h5>
+                <p>{{ entry['_source']['description'] }}</p>
+                <a class="btn btn-primary" href="{{ url_for('main.software_info', es_id=entry['_id']) }}">View</a>
             </div>
         </div>
     {% endfor %}
@@ -22,19 +22,19 @@
 
 <nav aria-label="Page Navigation">
     <ul class="pagination">
-        <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=0) }}"><i class="bi bi-caret-left"></i><i class="bi bi-caret-left"></i></a></li>
-        {% if page_idx > 0 %}
-            <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=page_idx - 1) }}"><i class="bi bi-caret-left"></i></a></li>
+        <li class="page-item"><a class="page-link" href="{{ url_for('main.search_results', page=0, q_check=q_check, q=q, sw_check=sw_check, sw=sw, lang_check=lang_check, lang=lang) }}"><i class="bi bi-caret-left"></i><i class="bi bi-caret-left"></i></a></li>
+        {% if page > 0 %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('main.search_results', page=page - 1, q_check=q_check, q=q, sw_check=sw_check, sw=sw, lang_check=lang_check, lang=lang) }}"><i class="bi bi-caret-left"></i></a></li>
         {% else %}
-            <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=page_idx) }}"><i class="bi bi-caret-left"></i></a></li>
+            <li class="page-item"><a class="page-link" href="{{ url_for('main.search_results', page=page, q_check=q_check, q=q, sw_check=sw_check, sw=sw, lang_check=lang_check, lang=lang) }}"><i class="bi bi-caret-left"></i></a></li>
         {% endif %}
 
-        {% if (total_pages - 1) > page_idx %}
-            <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=page_idx + 1) }}"><i class="bi bi-caret-right"></i></a></li>
+        {% if total_pages - 1 > page %}
+            <li class="page-item"><a class="page-link" href="{{ url_for('main.search_results', page=page + 1, q_check=q_check, q=q, sw_check=sw_check, sw=sw, lang_check=lang_check, lang=lang) }}"><i class="bi bi-caret-right"></i></a></li>
         {% else %}
-            <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=page_idx) }}"><i class="bi bi-caret-right"></i></a></li>
+            <li class="page-item"><a class="page-link" href="{{ url_for('main.search_results', page=page, q_check=q_check, q=q, sw_check=sw_check, sw=sw, lang_check=lang_check, lang=lang) }}"><i class="bi bi-caret-right"></i></a></li>
         {% endif %}
-        <li class="page-item"><a class="page-link" href="{{ url_for('main.search_engine', page_idx=(total_pages - 1)) }}"><i class="bi bi-caret-right"></i><i class="bi bi-caret-right"></i></a></li>
+        <li class="page-item"><a class="page-link" href="{{ url_for('main.search_results', page=total_pages - 1, q_check=q_check, q=q, sw_check=sw_check, sw=sw, lang_check=lang_check, lang=lang) }}"><i class="bi bi-caret-right"></i><i class="bi bi-caret-right"></i></a></li>
     </ul>
 </nav>
 

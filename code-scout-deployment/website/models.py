@@ -39,6 +39,8 @@ class Clusters(db.Model):
 
     secure = db.Column(db.Boolean)
 
+    org_id = db.Column(db.Integer, unique=True)
+
 class SoftwareTypes(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 

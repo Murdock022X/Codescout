@@ -46,49 +46,22 @@
             </div>
         </form>
     </div>
+
+    {% if cluster %}
     <div class="col">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th scope="col" style="text-align:center;">Name</th>
-                    <th scope="col" style="text-align:center;">IP/DNS</th>
-                    <th scope="col" style="text-align:center;">Details</th>
-                    <th scope="col" style="text-align:center;">Auto Configure</th>
-                    <th scope="col" style="text-align:center;">Test Connection</th>
-                    {% if current_user.admin_status %}
-                    <th scope="col" style="text-align:center;">Edit</th>
-                    <th scope="col" style="text-align:center;">Delete</th>
-                    {% endif %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for cluster in clusters %}
-                <tr class="dropdown">
-                    <td style="text-align:center;">{{ cluster.name }}</td>
-                    <td style="text-align:center;">{{ cluster.es_host }}</td>
-                    <td style="text-align:center;">
-                        <div class="dropdown">
-                            <i class="bi bi-eye text-primary" role="button" data-bs-toggle="dropdown" aria-expanded="false"></i>
-                            <ul class="dropdown-menu">
-                                <li><span class="dropdown-item-text">Name: {{ cluster.name }}</span></li>
-                                <li><span class="dropdown-item-text">URL: http{% if cluster.secure %}s{% endif %}://{{ cluster.es_host }}:{{ cluster.es_port }}</span></li>
-                                <li><span class="dropdown-item-text">User: {{ cluster.es_user }}</span></li>
-                                <li><span class="dropdown-item-text">Password: {{ cluster.es_password }}</span></li>
-                                <li><span class="dropdown-item-text">Status: {% if cluster.status == 1 %}Approved{% elif cluster.status == 0 %}Pending{% else %}Denied{% endif %}</span></li>
-                            </ul>
-                        </div>
-                    </td>
-                    <td style="text-align:center;"><a href="{{ url_for('main.setup_elastic', cluster_id=cluster.id) }}"><i class="bi bi-database-gear"></i></a></td>
-                    <td style="text-align:center;"><a href="{{ url_for('main.test_es_conn', cluster_id=cluster.id) }}"><i class="bi bi-plug"></i></a></td>
-                    {% if current_user.admin_status %}
-                    <td style="text-align:center;"><a href="{{ url_for('main.edit_cluster', cluster_id=cluster.id) }}"><i class="bi bi-pencil-square"></i></a></td>
-                    <td style="text-align:center;"><a href="{{ url_for('main.delete_cluster', cluster_id=cluster.id) }}"><i class="bi bi-trash"></i></a></td>
-                    {% endif %}
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="card">
+            <div class="card-body">
+                <p scope="col" style="text-align:center;">Name: {{ cluster.name }}</p>
+                <p scope="col" style="text-align:center;">IP/DNS: {{ cluster.es_host }}</p>
+                <p scope="col" style="text-align:center;">Port: {{ cluster.es_port }}</p>
+                <p scope="col" style="text-align:center;">Elasticsearch Username: {{ cluster.es_user }}</p>
+                <p scope="col" style="text-align:center;">Elasticsearch Password: {{ cluster.es_password }}</p>
+                <p scope="col" style="text-align:center;">Auto Configure: <a href="{{ url_for('main.setup_elastic', cluster_id=cluster.id) }}"><i class="bi bi-database-gear"></i></a></p>
+                <p scope="col" style="text-align:center;">Test Connection: <a href="{{ url_for('main.test_es_conn', cluster_id=cluster.id) }}"><i class="bi bi-plug"></i></a></p>
+            </div>
+        </div>
     </div>
+    {% endif %}
 </div>
 
 {% endblock %}

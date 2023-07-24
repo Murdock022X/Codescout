@@ -42,7 +42,7 @@ def get_from_and_size(page, page_len):
     return page * page_len, page_len
 
 def url_serialize(langs):
-    '+'.join(langs)
+    return '+'.join(langs)
 
 def url_deserialize(langs_str):
     return langs_str.split('+')   
