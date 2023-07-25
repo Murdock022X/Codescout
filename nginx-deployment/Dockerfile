@@ -1,10 +1,10 @@
 
 FROM nginx:latest as runtime
 
-ARG CONF_FILE="default.conf"
-
 ARG NGINX_PORT="80"
 
 EXPOSE ${NGINX_PORT}
 
-COPY ./default.conf /etc/nginx/conf.d
+COPY ./sites-enabled.conf /etc/nginx/conf.d/sites-enabled.conf
+
+

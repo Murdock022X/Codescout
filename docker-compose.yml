@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  code-scout:
+    # build:
+    #   context: codescout-deployment
+    container_name: codescout
+    image: codescout
+    restart: always
+    ports:
+      - "8080:8080"
+
+  postgres:
+    container_name: postgres
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=code-scout
+
+  elastic:
+    container_name: elasticsearch
+    image: elasticsearch:8.8.0
+    restart: always
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+    networks:
+      - elastic
+
+networks:
+  elastic:
+
+volumes:
+  postgres-data:

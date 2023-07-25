@@ -1,3 +1,5 @@
+
+
 FROM python:3.9 as runtime
 
 ARG CODE_SCOUT_HOME="/opt/codescout"
@@ -21,7 +23,7 @@ RUN touch ./logs/gunicorn.error.log
 
 COPY ./website ./website
 
-COPY ./app.py ./
+COPY ./app.py ./app.py
 
 COPY requirements.txt requirements.txt
 

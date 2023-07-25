@@ -1,7 +1,7 @@
 # Config file for gunicorn
 
 # Ip and port to bind gunicorn to.
-bind = '127.0.0.1:8080'
+bind = '0.0.0.0:8080'
 
 # Number of workers to create.
 workers = 2
