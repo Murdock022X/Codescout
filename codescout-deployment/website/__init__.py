@@ -24,6 +24,8 @@ def create_app():
 
         app.config['SEARCH_PAGE_LEN'] = config["SEARCH_PAGE_LEN"]
 
+        app.config['ENCRYPTION_KEY'] = config["ENCRYPTION_KEY"]
+
     db.init_app(app=app)
 
     login_manager.init_app(app=app)

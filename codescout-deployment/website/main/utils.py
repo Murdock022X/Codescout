@@ -1,9 +1,8 @@
 from elasticsearch import Elasticsearch
 from pathlib import Path
 from werkzeug.utils import secure_filename
-from flask import g, request, redirect, url_for, flash
-from website.models import Organizations, Clusters
-import json
+from website.models import Clusters
+from cryptography.fernet import Fernet
 
 def assemble_es_url(host, port, secure):
     if not secure:
@@ -24,10 +23,11 @@ def save_certs(certs_file, host, org_name, app):
 
     certs_file.data.save(str(certs_pth / Path(secure_filename('http_ca.crt'))))
 
-def get_es_connection(host: str, port: str, secure: bool, org_name: str, app, username: str, password: str) -> Elasticsearch:
+def get_es_connection(host: str, port: str, secure: bool, org_name: str, app, username: str, password: str, enc_key: str) -> Elasticsearch:
+    f = Fernet(enc_key.encode(encoding="utf8"))
     url = assemble_es_url(host=host, port=port, secure=secure)
     cert_path = assemble_cert_path(host=host, org_name=org_name, app=app) / Path('http_ca.crt')
-    auth = (username, password)
+    auth = (username, f.decrypt(password.encode(encoding="utf8")).decode(encoding="utf8"))
 
     conn = Elasticsearch(url, ca_certs=cert_path, basic_auth=auth)
 

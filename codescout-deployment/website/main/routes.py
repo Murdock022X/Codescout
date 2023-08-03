@@ -1,23 +1,18 @@
 from flask import render_template, Blueprint, redirect, url_for, current_app, flash, request, session
 from flask_login import current_user, login_required
 
+from website import db
 from website.models import Users, Clusters, SoftwareTypes, Languages, \
 Organizations
-
-from werkzeug.utils import secure_filename
-
 from website.main.forms import CreateOrgForm, JoinOrgForm, SearchForm, \
-AddClusterForm, EditClusterForm, AddSoftwareForm, AddSoftwareTypeForm, \
-AddLanguageForm
-
-from website import db
-
+AddClusterForm, AddSoftwareForm, AddSoftwareTypeForm, AddLanguageForm
 from website.main.decorators import org_required, admin_required
 from website.main.utils import save_certs, get_es_connection, get_from_and_size, url_serialize, url_deserialize
 
 from elastic_transport import ConnectionError
-
 from elasticsearch import BadRequestError
+
+from cryptography.fernet import Fernet
 
 main = Blueprint('main', __name__)
 
@@ -176,7 +171,8 @@ def search_results(page, q_check, q, sw_check, sw, lang_check, lang):
         org_name=org.name,
         username=cluster.es_user,
         password=cluster.es_password,
-        app=current_app
+        app=current_app,
+        enc_key=current_app.config["ENCRYPTION_KEY"]
     )
 
     response = es.search(index="software-index", query=search_query)
@@ -220,7 +216,8 @@ def software_info(es_id):
                                     org_name=org.name,
                                     username=cluster.es_user,
                                     password=cluster.es_password,
-                                    app=current_app)
+                                    app=current_app,
+                                    enc_key=current_app.config["ENCRYPTION_KEY"])
 
     response = es.search(index='software-index', query={"term": {"_id": es_id}})
 
@@ -305,7 +302,8 @@ def add_software():
                                 org_name=org.name,
                                 username=cluster.es_user,
                                 password=cluster.es_password,
-                                app=current_app)
+                                app=current_app,
+                                enc_key=current_app.config["ENCRYPTION_KEY"])
 
         es.index(index='software-index', document=doc)
             
@@ -327,6 +325,10 @@ def clusters():
 
     if form.validate_on_submit():
 
+        key = current_app.config["ENCRYPTION_KEY"]
+
+        f = Fernet(key.encode(encoding="utf8"))
+
         name = form.name.data
 
         es_host = form.es_host.data
@@ -335,7 +337,7 @@ def clusters():
 
         es_user = form.es_user.data
 
-        es_password = form.es_password.data
+        es_password = f.encrypt(form.es_password.data.encode(encoding="utf8")).decode(encoding="utf8")
 
         secure = form.secure.data
         sb = True
@@ -416,10 +418,12 @@ def test_es_conn(cluster_id):
                             org_name=org.name,
                             username=cluster.es_user, 
                             password=cluster.es_password,
-                            app=current_app)
+                            app=current_app,
+                            enc_key=current_app.config["ENCRYPTION_KEY"])
     
-    if es.ping():
+    if es.info():
         flash("Connection Test Successful", category='success')
+        
     else:
         flash("Connection Test Failed", category='danger')
 
@@ -439,7 +443,8 @@ def setup_elastic(cluster_id: int):
                             org_name=org.name,
                             username=cluster.es_user, 
                             password=cluster.es_password,
-                            app=current_app)
+                            app=current_app,
+                            enc_key=current_app.config["ENCRYPTION_KEY"])
     
     try:
         es.indices.create(index='software-index')

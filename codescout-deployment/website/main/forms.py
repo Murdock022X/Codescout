@@ -10,6 +10,7 @@ class CreateOrgForm(FlaskForm):
     submit = SubmitField('Create')
 
 class JoinOrgForm(FlaskForm):
+    # Use organization token to join org.
     org_token = StringField('Organization Enrollment Token', validators=[InputRequired(), Length(min=64, max=64)])
 
     submit = SubmitField('Enroll')
@@ -20,23 +21,28 @@ class AddSoftwareForm(FlaskForm):
     # Type of software to add.
     software_type = RadioField('Software Type', validators=[InputRequired()])
 
-    # Applicable languages. coerce=(data type) is very important, if not present the form will not be validated.
+    # Applicable language.
     language = RadioField('Language', validators=[InputRequired()])
 
+    # Name for software.
     name = StringField('Name For Software', validators=[InputRequired()])
 
+    # Should provide a good description, this will be the primary field that is searched for a match.
     description = TextAreaField('Description of Software', validators=[InputRequired()])
 
+    # How to get the software.
     retrieval_instructions = TextAreaField('How to Retrieve this Software', validators=[InputRequired()])
 
     submit = SubmitField('Add Software')
 
 class AddSoftwareTypeForm(FlaskForm):
+    # Type of software.
     type = StringField('Software Type', validators=[InputRequired()])
 
     submit = SubmitField('Add')
 
 class AddLanguageForm(FlaskForm):
+    # Language for software.
     lang = StringField('Language', validators=[InputRequired()])
 
     submit = SubmitField('Add')
@@ -44,13 +50,13 @@ class AddLanguageForm(FlaskForm):
 class SearchForm(FlaskForm):
     # Form to search for software using Elasticsearch.
 
-    # Cluster selections, software types, and language filter need to use 
+    # Software type, and language need to use 
     # dynamic choices, assign choices based on user in route.
 
-    # Select which software types you're looking for.
+    # Select which software type you're looking for.
     software_type = RadioField('Software Types', validators=[Optional()])
 
-    # Select which languages the software is written in.
+    # Select which language the software is written in.
     language = RadioField('Languages', validators=[Optional()])
 
     # The search query to search for.
@@ -81,28 +87,5 @@ class AddClusterForm(FlaskForm):
 
     # Should Code Scout use a secure connection?
     secure = RadioField('Secure Connection?', choices=['Yes', 'No'], validators=[InputRequired()])
-
-    submit = SubmitField('Save')
-
-class EditClusterForm(FlaskForm):
-    # Edit cluster information.
-
-    # Name of the cluster.
-    name = StringField('Cluster Name', validators=[InputRequired(), Length(max=100)])
-
-    # Elasticsearch host IP/DNS.
-    es_host = StringField('Elasticsearch Host', validators=[Optional(), Length(max=200)])
-
-    # Elasticsearch host port.
-    es_port = StringField('Elasticsearch Port', validators=[Optional(), Length(max=5)])
-
-    # Certificates for Elasticsearch.
-    es_certs_file = FileField('CA Certificate', validators=[Optional()])
-
-    # Username to Elasticsearch.
-    es_user = StringField('Elasticsearch Username', validators=[Optional(), Length(max=512)])
-
-    # Password to Elasticsearch.
-    es_password = PasswordField('Elasticsearch Password', validators=[Optional(), Length(min=6, max=512)])
 
     submit = SubmitField('Save')

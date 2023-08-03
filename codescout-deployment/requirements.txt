@@ -1,6 +1,7 @@
 blinker==1.6.2
 certifi==2023.7.22
 click==8.1.6
+cryptography==3.4.8
 elastic-transport==8.4.0
 elasticsearch==8.8.2
 Flask==2.3.2

@@ -35,7 +35,7 @@ class Clusters(db.Model):
 
     es_user = db.Column(db.String(100))
 
-    es_password = db.Column(db.String(100))
+    es_password = db.Column(db.String(300))
 
     secure = db.Column(db.Boolean)
 
