@@ -49,6 +49,7 @@
                     </li>
                     {% if current_user.is_authenticated and current_user.admin_status %}
                     <li class="nav-item"><a class="nav-link active" href="{{ url_for('main.clusters') }}"><i class="bi bi-gear-wide-connected"></i>&nbsp;Cluster Configuration</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="{{ url_for('main.org_user_monitor', page=0) }}"><i class="bi bi-people"></i>&nbsp;Organization Users</a></li>
                     {% endif %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">

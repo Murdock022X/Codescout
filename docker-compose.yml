@@ -1,4 +1,4 @@
-version: '3'
+version: '3.1'
 
 services:
   codescout:
@@ -12,17 +12,12 @@ services:
     restart: always
     volumes:
       - logs:/opt/codescout/logs
-    expose:
-      - 8080
-    networks:
-      - codescout
-
-  nginx:
-    build: nginx-deployment
     ports:
-      - "80:80"
-    depends_on:
-      - codescout
+      - "8080:8080"
+    networks:
+      cs_net:
+        aliases:
+          - codescout
 
   postgres:
     container_name: postgres
@@ -37,7 +32,7 @@ services:
       - POSTGRES_PASSWORD=admin
       - POSTGRES_DB=codescout
     networks:
-      - codescout
+      - cs_net
     healthcheck:
       test:
         [
@@ -58,7 +53,7 @@ services:
     volumes:
       - logs:/opt/codescout/logs
     networks:
-      - codescout
+      - cs_net
 
   setup:
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
@@ -139,12 +134,12 @@ services:
       - discovery.seed_hosts=es02,es03
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - bootstrap.memory_lock=true
-      - xpack.security.enabled=true
-      - xpack.security.http.ssl.enabled=true
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
       - xpack.security.http.ssl.key=certs/es01/es01.key
       - xpack.security.http.ssl.certificate=certs/es01/es01.crt
       - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
-      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.enabled=false
       - xpack.security.transport.ssl.key=certs/es01/es01.key
       - xpack.security.transport.ssl.certificate=certs/es01/es01.crt
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
@@ -152,7 +147,9 @@ services:
       - xpack.license.self_generated.type=${LICENSE}
     mem_limit: ${MEM_LIMIT}
     networks:
-      - codescout
+      cs_net:
+        aliases:
+          - es01
     ulimits:
       memlock:
         soft: -1
@@ -181,12 +178,12 @@ services:
       - cluster.initial_master_nodes=es01,es02,es03
       - discovery.seed_hosts=es01,es03
       - bootstrap.memory_lock=true
-      - xpack.security.enabled=true
-      - xpack.security.http.ssl.enabled=true
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
       - xpack.security.http.ssl.key=certs/es02/es02.key
       - xpack.security.http.ssl.certificate=certs/es02/es02.crt
       - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
-      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.enabled=false
       - xpack.security.transport.ssl.key=certs/es02/es02.key
       - xpack.security.transport.ssl.certificate=certs/es02/es02.crt
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
@@ -194,7 +191,9 @@ services:
       - xpack.license.self_generated.type=${LICENSE}
     mem_limit: ${MEM_LIMIT}
     networks:
-      - codescout
+      cs_net:
+        aliases:
+          - es02
     ulimits:
       memlock:
         soft: -1
@@ -223,12 +222,12 @@ services:
       - cluster.initial_master_nodes=es01,es02,es03
       - discovery.seed_hosts=es01,es02
       - bootstrap.memory_lock=true
-      - xpack.security.enabled=true
-      - xpack.security.http.ssl.enabled=true
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
       - xpack.security.http.ssl.key=certs/es03/es03.key
       - xpack.security.http.ssl.certificate=certs/es03/es03.crt
       - xpack.security.http.ssl.certificate_authorities=certs/ca/ca.crt
-      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.transport.ssl.enabled=false
       - xpack.security.transport.ssl.key=certs/es03/es03.key
       - xpack.security.transport.ssl.certificate=certs/es03/es03.crt
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
@@ -236,7 +235,9 @@ services:
       - xpack.license.self_generated.type=${LICENSE}
     mem_limit: ${MEM_LIMIT}
     networks:
-      - codescout
+      cs_net:
+        aliases:
+          - es03
     ulimits:
       memlock:
         soft: -1
@@ -280,7 +281,7 @@ services:
 
 networks:
   elastic:
-  codescout:
+  cs_net:
 
 volumes:
   postgres-data:

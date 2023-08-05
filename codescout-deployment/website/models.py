@@ -37,8 +37,6 @@ class Clusters(db.Model):
 
     es_password = db.Column(db.String(300))
 
-    secure = db.Column(db.Boolean)
-
     org_id = db.Column(db.Integer, unique=True)
 
 class SoftwareTypes(db.Model):

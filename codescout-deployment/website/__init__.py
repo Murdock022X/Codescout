@@ -18,7 +18,6 @@ def create_app():
     app = Flask(__name__)
 
     app.config['PROJECT_ROOT'] = Path(__file__).parent
-    app.config['UPLOAD_FOLDER'] = 'static/files'
 
     with open(str(app.config['PROJECT_ROOT'] / Path('app_config.json'))) as conf:
         config = json.load(conf)
@@ -28,6 +27,7 @@ def create_app():
         app.config['SQLALCHEMY_DATABASE_URI'] = config['SQLALCHEMY_DATABASE_URI']
 
         app.config['SEARCH_PAGE_LEN'] = config["SEARCH_PAGE_LEN"]
+        app.config['USER_PAGE_LEN'] = config["USER_PAGE_LEN"]
 
         app.config['ENCRYPTION_KEY'] = config["ENCRYPTION_KEY"]
 

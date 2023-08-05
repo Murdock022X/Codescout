@@ -22,11 +22,6 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label" for="certs-input">{{ form.es_certs_file.label }}</label>
-                {{ form.es_certs_file(class='form-control-file', type='file', id='certs-input', placeholder='Elasticsearch Certificate File') }}
-            </div>
-
-            <div class="mb-3">
                 <label class="form-label" for="username-input">{{ form.es_user.label }}</label>
                 {{ form.es_user(class='form-control', type='text', id='username-input') }}
             </div>
@@ -34,11 +29,6 @@
             <div class="mb-3">
                 <label class="form-label" for="password-input">{{ form.es_password.label }}</label>
                 {{ form.es_password(class='form-control', type='password', id='password-input') }}
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label" for="secure-input">{{ form.secure.label }}</label>
-                {{ form.secure(class='form-control', id='secure-input', style='list-style: none;') }}
             </div>
 
             <div class="mb-3">

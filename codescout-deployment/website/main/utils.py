@@ -4,35 +4,20 @@ from werkzeug.utils import secure_filename
 from website.models import Clusters
 from cryptography.fernet import Fernet
 
-def assemble_es_url(host, port, secure):
-    if not secure:
-        return 'http://{}:{}'.format(host, port)
+def assemble_es_url(host, port):
+    return 'http://{}:{}'.format(host, port)
 
-    return 'https://{}:{}'.format(host, port)
-
-def assemble_cert_path(host, org_name, app):
-    """
-    Returns the directory for the certifications to be stored in via Path object.
-    """
-    return Path(app.root_path) / Path(app.config['UPLOAD_FOLDER']) / Path(org_name) / Path(host)
-
-def save_certs(certs_file, host, org_name, app):
-    certs_pth = assemble_cert_path(host=host, org_name=org_name, app=app)
-
-    certs_pth.mkdir(parents=True, exist_ok=True)
-
-    certs_file.data.save(str(certs_pth / Path(secure_filename('http_ca.crt'))))
-
-def get_es_connection(host: str, port: str, secure: bool, org_name: str, app, username: str, password: str, enc_key: str) -> Elasticsearch:
+def get_es_connection(host: str, port: str, username: str, password: str, enc_key: str) -> Elasticsearch:
     f = Fernet(enc_key.encode(encoding="utf8"))
-    url = assemble_es_url(host=host, port=port, secure=secure)
-    cert_path = assemble_cert_path(host=host, org_name=org_name, app=app) / Path('http_ca.crt')
+    url = assemble_es_url(host=host, port=port)
     auth = (username, f.decrypt(password.encode(encoding="utf8")).decode(encoding="utf8"))
 
-    conn = Elasticsearch(url, ca_certs=cert_path, basic_auth=auth)
+    conn = Elasticsearch(url, basic_auth=auth, verify_certs=False)
 
     return conn
 
+# Deprecated
+"""
 def check_es_cluster_validity(es_cluster: Clusters) -> bool:
     if es_cluster.status == 1:
         return True
@@ -47,7 +32,6 @@ def url_serialize(langs):
 def url_deserialize(langs_str):
     return langs_str.split('+')   
 
-"""
 class ResponseData:
     def __init__(self, resp):
         self.es_id = resp['_id']

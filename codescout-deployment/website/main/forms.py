@@ -76,16 +76,10 @@ class AddClusterForm(FlaskForm):
     # Elasticsearch host port.
     es_port = StringField('Elasticsearch Port', validators=[InputRequired(), Length(max=5)])
 
-    # Certificates for Elasticsearch.
-    es_certs_file = FileField('CA Certificate', validators=[InputRequired()])
-
     # Username to Elasticsearch.
     es_user = StringField('Elasticsearch Username', validators=[InputRequired()])
 
     # Password to Elasticsearch.
     es_password = PasswordField('Elasticsearch Password', validators=[InputRequired(), Length(min=6)])
-
-    # Should Code Scout use a secure connection?
-    secure = RadioField('Secure Connection?', choices=['Yes', 'No'], validators=[InputRequired()])
 
     submit = SubmitField('Save')
