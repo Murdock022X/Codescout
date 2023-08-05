@@ -3,12 +3,17 @@ from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 import json
 from pathlib import Path
- 
+import logging as lg
+from os import environ
+from pathlib import Path
+
 db = SQLAlchemy()
 
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
- 
+
+lg.basicConfig(filename=str(Path(environ.get("CODE_SCOUT_HOME")) / Path('logs/flask.app.log')), level=lg.DEBUG, format='[%(asctime)s] %(levelname)s --> %(module)s - %(message)s')
+
 def create_app():
     app = Flask(__name__)
 
@@ -35,5 +40,7 @@ def create_app():
 
     from website.main.routes import main
     app.register_blueprint(main)
+
+    app.logger.info('Flask App Configured.')
 
     return app

@@ -2,14 +2,26 @@ version: '3'
 
 services:
   codescout:
+    depends_on:
+        postgres:
+          condition: service_healthy
     build:
       context: codescout-deployment
     container_name: codescout
     image: codescout
     restart: always
-    ports:
-      - "8080:8080"
+    volumes:
+      - logs:/opt/codescout/logs
+    expose:
+      - 8080
     networks:
+      - codescout
+
+  nginx:
+    build: nginx-deployment
+    ports:
+      - "80:80"
+    depends_on:
       - codescout
 
   postgres:
@@ -24,6 +36,27 @@ services:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
       - POSTGRES_DB=codescout
+    networks:
+      - codescout
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  postgres_setup:
+    depends_on:
+        postgres:
+          condition: service_healthy
+    container_name: postgres_setup
+    image: codescout
+    command: python3 setup-db.py
+    volumes:
+      - logs:/opt/codescout/logs
     networks:
       - codescout
 
@@ -89,6 +122,7 @@ services:
       retries: 120
 
   es01:
+    container_name: es01
     depends_on:
       setup:
         condition: service_healthy
@@ -117,6 +151,8 @@ services:
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${LICENSE}
     mem_limit: ${MEM_LIMIT}
+    networks:
+      - codescout
     ulimits:
       memlock:
         soft: -1
@@ -132,6 +168,7 @@ services:
       retries: 120
 
   es02:
+    container_name: es02
     depends_on:
       - es01
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
@@ -156,6 +193,8 @@ services:
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${LICENSE}
     mem_limit: ${MEM_LIMIT}
+    networks:
+      - codescout
     ulimits:
       memlock:
         soft: -1
@@ -171,6 +210,7 @@ services:
       retries: 120
 
   es03:
+    container_name: es03
     depends_on:
       - es02
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
@@ -195,6 +235,8 @@ services:
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${LICENSE}
     mem_limit: ${MEM_LIMIT}
+    networks:
+      - codescout
     ulimits:
       memlock:
         soft: -1
@@ -242,6 +284,7 @@ networks:
 
 volumes:
   postgres-data:
+  logs:
   certs:
   esdata01:
   esdata02:

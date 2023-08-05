@@ -8,5 +8,7 @@ def main():
         models.db.create_all()
         models.db.session.commit()
 
+        app.logger.info('Database setup complete.')
+
 if __name__ == '__main__':
     main()
