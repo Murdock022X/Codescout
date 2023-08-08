@@ -9,6 +9,8 @@
         <div class="card">
             <div class="card-body">
                 <h5>{{ entry['_source']['name'] }}</h5>
+                <span class="badge bg-primary">{{ entry['_source']['software_type'] }}</span>
+                <span class="badge bg-primary">{{ entry['_source']['language'] }}</span>
                 <p>{{ entry['_source']['description'] }}</p>
                 <a class="btn btn-primary" href="{{ url_for('main.software_info', es_id=entry['_id']) }}">View</a>
             </div>

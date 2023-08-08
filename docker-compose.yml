@@ -1,38 +1,69 @@
+###############################################################################
+# This docker compose file deploys the Flask app container, postgres (handles 
+# postgres setup with a setup container), and a demo ElasticSearch cluster 
+# (again handled via setup container).
+###############################################################################
+
 version: '3.1'
 
 services:
   codescout:
+    # Postgres should be up and running for us to use the flask app.
     depends_on:
         postgres:
           condition: service_healthy
+
+    # How to build the image.
     build:
       context: codescout-deployment
+
     container_name: codescout
+    
+    # Flask app image with gunicorn config.
     image: codescout
+
+    # Always restart the app if it exits. App is safe to restart/replicate.
     restart: always
+
+    # Mount volume to store persistent logs.
     volumes:
       - logs:/opt/codescout/logs
+
+    # Connect on port 8080
     ports:
       - "8080:8080"
+
+    # Allow other containers to connect to codescout using the codescout name DNS.
     networks:
       cs_net:
         aliases:
           - codescout
 
+  # Add a database container so that we can store our flask apps data.
   postgres:
     container_name: postgres
     image: postgres
     restart: always
+
+    # Connect on 5432
     ports:
       - "5432:5432"
+    
+    # Makes postgres table data persist.
     volumes:
       - postgres-data:/var/lib/postgresql/data
+
+    # Sets the user, password and database.
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
       - POSTGRES_DB=codescout
+
+    # Use the cs_net so codescout container can resolve the postgres dns by just using the container name.
     networks:
       - cs_net
+
+    # Healthcheck ensures postgres setup script runs after database is active.
     healthcheck:
       test:
         [
@@ -43,23 +74,40 @@ services:
       timeout: 10s
       retries: 10
 
+  # Setup the postgres database.
   postgres_setup:
+
+    # Wait for the postgres database to come up.
     depends_on:
         postgres:
           condition: service_healthy
+      
     container_name: postgres_setup
+    
+    # Use the codescout image which contains app configuration and setup script.
     image: codescout
+
+    # Run the setup script to create the tables in the postgres database.
     command: python3 setup-db.py
+
+    # Store any logs in the volume.
     volumes:
       - logs:/opt/codescout/logs
     networks:
       - cs_net
 
+  # Setup the Elasticsearch cluster.
   setup:
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    # Used for storing certs that the cluster will use.
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
     user: "0"
+
+    # Make sure the elastic passwords are set, then generate the certs. If 
+    # project python client connection ever needs to be swapped to https 
+    # rather than http need to generate valid hostname connections to be 
+    # reached from codescout container.
     command: >
       bash -c '
         if [ x${ELASTIC_PASSWORD} == x ]; then
@@ -116,17 +164,21 @@ services:
       timeout: 5s
       retries: 120
 
+  # Elasticsearch master node.
   es01:
     container_name: es01
     depends_on:
       setup:
         condition: service_healthy
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    # Mount the certs from setup and volumes to store data.
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
       - esdata01:/usr/share/elasticsearch/data
+    # Can connect on port 9200.
     ports:
       - ${ES_PORT}:9200
+    # Setup environment
     environment:
       - node.name=es01
       - cluster.name=${CLUSTER_NAME}
@@ -146,6 +198,7 @@ services:
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${LICENSE}
     mem_limit: ${MEM_LIMIT}
+    # Can reference container from other containers using es01 as the dns.
     networks:
       cs_net:
         aliases:
@@ -164,6 +217,7 @@ services:
       timeout: 10s
       retries: 120
 
+  # See es01
   es02:
     container_name: es02
     depends_on:
@@ -208,6 +262,7 @@ services:
       timeout: 10s
       retries: 120
 
+  # See es01
   es03:
     container_name: es03
     depends_on:
@@ -252,37 +307,11 @@ services:
       timeout: 10s
       retries: 120
 
-  kibana:
-    depends_on:
-      es01:
-        condition: service_healthy
-    image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
-    volumes:
-      - certs:/usr/share/kibana/config/certs
-      - kibanadata:/usr/share/kibana/data
-    ports:
-      - ${KIBANA_PORT}:5601
-    environment:
-      - SERVERNAME=kibana
-      - ELASTICSEARCH_HOSTS=https://es01:9200
-      - ELASTICSEARCH_USERNAME=kibana_system
-      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
-      - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
-    mem_limit: ${MEM_LIMIT}
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 302 Found'",
-        ]
-      interval: 10s
-      timeout: 10s
-      retries: 120
-
 networks:
-  elastic:
+  # Use this network so that docker containers can see each other and talk to each other using container names as DNS.
   cs_net:
 
+# Persistent volumes to store postgres, logs, certs, and elastic data.
 volumes:
   postgres-data:
   logs:
@@ -290,4 +319,3 @@ volumes:
   esdata01:
   esdata02:
   esdata03:
-  kibanadata:

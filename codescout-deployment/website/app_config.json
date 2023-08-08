@@ -1,6 +1,6 @@
 {
     "SECRET_KEY": "b7850a63987778b77f788b69fe526d26",
-    "SQLALCHEMY_DATABASE_URI": "postgresql://admin:admin@localhost:5432/codescout",
+    "SQLALCHEMY_DATABASE_URI": "postgresql://admin:admin@postgres:5432/codescout",
     "SEARCH_PAGE_LEN": 20,
     "USER_PAGE_LEN": 20,
     "ENCRYPTION_KEY": "AgS9aDter8u2QW_lBKF_dKMRiwoo2ibXIqKDLHM0_eg="

@@ -31,7 +31,7 @@ class AddSoftwareForm(FlaskForm):
     description = TextAreaField('Description of Software', validators=[InputRequired()])
 
     # How to get the software.
-    retrieval_instructions = TextAreaField('How to Retrieve this Software', validators=[InputRequired()])
+    install_instructions = TextAreaField('How to Retrieve this Software', validators=[InputRequired()])
 
     submit = SubmitField('Add Software')
 

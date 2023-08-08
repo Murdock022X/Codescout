@@ -45,7 +45,6 @@
                 <p scope="col" style="text-align:center;">IP/DNS: {{ cluster.es_host }}</p>
                 <p scope="col" style="text-align:center;">Port: {{ cluster.es_port }}</p>
                 <p scope="col" style="text-align:center;">Elasticsearch Username: {{ cluster.es_user }}</p>
-                <p scope="col" style="text-align:center;">Elasticsearch Password: {{ cluster.es_password }}</p>
                 <p scope="col" style="text-align:center;">Auto Configure: <a href="{{ url_for('main.setup_elastic', cluster_id=cluster.id) }}"><i class="bi bi-database-gear"></i></a></p>
                 <p scope="col" style="text-align:center;">Test Connection: <a href="{{ url_for('main.test_es_conn', cluster_id=cluster.id) }}"><i class="bi bi-plug"></i></a></p>
             </div>

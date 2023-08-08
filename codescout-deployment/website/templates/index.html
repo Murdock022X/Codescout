@@ -2,18 +2,27 @@
 
 {% block content %}
 
-<h4></h4>
-<p>The Distributed Code Repository website is a simple way to search an 
-    ElasticSearch cluster for software services and packages. By setting up 
-    your own ElasticSearch cluster (reccomended to use Docker) and providing 
-    the DCR website with the ip address you can easily search and add packages 
-    and services developed by your team, company, etc. to your cluster while 
-    keeping your IP private. DCR is also available as a Helm Chart if you want 
-    to deploy it on your own servers using a Kubernetes cluster.</p>
+<h4>Codescout</h4>
+<p>Codescout is an application that can be deployed via containerization for a 
+    specific organization that wishes to have complete control of their IP while 
+    still being able to keep a well documented, widely available, and searchable 
+    database of their IP.
+    
+    Codescout has two primary services as part of it, these are the Codescout 
+    Flask deployment and the PostgreSQL database that facilitates its use. 
+    Additionally there is an Elasticsearch deployment included for demo purposes.
+    Elasticsearch is what gives Codescout the ability to function. In order to 
+    add data and search that data your organization must have an Elasticsearch 
+    cluster setup and connected to Codescout.</p>
 
-<h4>What Distributed Code Repositories is all about:</h4>
-<p>The goal of DCR is to keep your code private, while allowing users in your 
-    organization the ability to quickly find and gain access to software 
-    services and packages that meet their functionality requirements.</p>
+<h4>What I Learned</h4>
+
+<ul>
+    <li>ElasticSearch Architecture and Operations</li>
+    <li>Furthered my knowledge of Docker and Docker-Compose, by learning how to automate Docker operation via Docker-Compose.</li>
+    <li>Advanced in SQL operations by learning how relations work in SQL.</li>
+    <li>Solidified my Flask programming.</li>
+    <li>General deployment operations, experimented with Elasticsearch certs and verifying client.</li>
+</ul>
 
 {% endblock %}

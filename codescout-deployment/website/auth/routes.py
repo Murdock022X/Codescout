@@ -11,6 +11,12 @@ auth = Blueprint('auth', __name__)
 # Login route.
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
+    """
+    Route to login Flask user.
+    
+    :return: Redirect to main.index or rendered template of login.html.
+    """
+
     form = LoginForm()
 
     # Need to pass organization, if user is associated with one, to render template.
@@ -20,12 +26,16 @@ def login():
 
     # Login the user if they provided valid information.
     if form.validate_on_submit():
+
+        # Check if the username is already in the database, if it is we need 
+        # to check password.
         user = Users.query.filter_by(username=form.username.data).first()
 
+        # If user exists.
         if user:
+            # If password is correct login the user and redirect to main.index.
             if check_password_hash(user.password_hash, form.password.data):
                 login_user(user)
-
                 return redirect(url_for('main.index'))
             
             else:
@@ -39,6 +49,12 @@ def login():
 # Signup route.
 @auth.route('/signup', methods=['GET', 'POST'])
 def signup():
+    """
+    Signup user as a Flask user.
+
+    :return: Rendered template for signup.html or redirect to auth.login.
+    """
+
     form = SignupForm()
 
     # Need to pass organization, if user is associated with one, to render 
@@ -50,19 +66,24 @@ def signup():
     # Do the necessary verification to ensure that the form data supplied can 
     # create a user and then create if valid.
     if form.validate_on_submit():
+
+        # If username already take it can't be used again.
         if Users.query.filter_by(username=form.username.data).first():
             flash('Email Already Registered')
             
+        # Add the user.
         else:
+
+            # Create the password hash.
             password_hash = generate_password_hash(form.password.data, 
                                                    method='sha256')
             
+            # Add the new user.
             new_user = Users(username=form.username.data, 
                             password_hash=password_hash, 
                             first_name=form.first_name.data, 
                             last_name=form.last_name.data,
                             admin_status=False)
-
             db.session.add(new_user)
             db.session.commit()
 
@@ -74,5 +95,10 @@ def signup():
 @auth.route('/logout')
 @login_required
 def logout():
+    """
+    Logout current user.
+
+    :return: Redirect to main.index.
+    """
     logout_user()
     return redirect(url_for('main.index'))

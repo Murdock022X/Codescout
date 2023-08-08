@@ -5,13 +5,36 @@ from website.models import Clusters
 from cryptography.fernet import Fernet
 
 def assemble_es_url(host, port):
+    """
+    Convert host and port into http url.
+    :param host: The ip/dns.
+    :param port: The port to connect to.
+    :return: The http unsecure url for the host + port.
+    """
     return 'http://{}:{}'.format(host, port)
 
 def get_es_connection(host: str, port: str, username: str, password: str, enc_key: str) -> Elasticsearch:
+    """
+    Generate an Elasticsearch connection using supplied parameters.
+
+    :param host: The host ip/dns.
+    :param port: The host port to connect on.
+    :param username: The Elasticsearch username to use for connection.
+    :param password: The encrypted password info.
+    :param enc_key: The encryption key which can decrypt the password.
+    :return: The Elasticsearch connection.
+    """
+
+    # Fernet instance allows us to decrypt the encrypted password.
     f = Fernet(enc_key.encode(encoding="utf8"))
+
+    # Assemble the URL for the elasticsearch cluster.
     url = assemble_es_url(host=host, port=port)
+
+    # Assemble the authorization for the cluster into a tuple while decrypting the password.
     auth = (username, f.decrypt(password.encode(encoding="utf8")).decode(encoding="utf8"))
 
+    # Generate connection to Elasticsearch.
     conn = Elasticsearch(url, basic_auth=auth, verify_certs=False)
 
     return conn
